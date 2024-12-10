@@ -16,9 +16,9 @@
 <body>
     <div class="min-h-screen flex">
         <!-- Left Image Section -->
-        <div class="w-1/2 hidden lg:flex bg-cover bg-top" style="background-image: url('{% static "images/bg-register.png" %}');">
-            <div class="absolute top-8 left-8">
-                <img src="{% static "images/Vertical-Logo.png" %}" alt="Logo" class="w-32">
+        <div class="w-1/2 hidden lg:flex bg-cover bg-top" style="background-image: url('{% static "images/bg-register.jpg" %}');">
+            <div class="absolute">
+                <img src="{% static "images/Black _Logo.svg" %}" alt="Logo" class="w-2/4">
             </div>
         </div>
         
@@ -36,7 +36,7 @@
                 
                 <!-- ช่องกรอกชื่อผู้ใช้ -->
                 <div>
-                    <label for="username" class="text-sm font-medium text-gray-600">Username</label>
+                    <label for="username" class="text-md font-medium text-gray-600">Username</label>
                     {{ form.username }} 
                     
                     <!-- แสดงข้อความ error -->
@@ -47,7 +47,7 @@
                 
                 <!-- ช่องกรอกอีเมล -->
                 <div>
-                    <label for="email" class="text-sm font-medium text-gray-600">Email</label>
+                    <label for="email" class="text-md font-medium text-gray-600">Email</label>
                     {{ form.email }} 
                 
                     <!-- แสดงข้อความ error -->
@@ -58,7 +58,7 @@
                 
                 <!-- ช่องกรอกรหัสผ่าน -->
                 <div class="relative">
-                    <label for="password1" class="text-sm font-medium text-gray-600">Password</label>
+                    <label for="password1" class="text-md font-medium text-gray-600">Password</label>
                     <div class="mt-1 relative">
                         {{ form.password1 }}
 
@@ -80,7 +80,7 @@
                 
                 <!-- ช่องยืนยันรหัสผ่าน -->
                 <div class="relative">
-                    <label for="password2" class="text-sm font-medium text-gray-600">Confirm Password</label>
+                    <label for="password2" class="text-md font-medium text-gray-600">Confirm Password</label>
                     <div class="mt-1 relative">
                         {{ form.password2 }}
 
@@ -104,11 +104,15 @@
                 
                 <!-- ปุ่ม register -->
                 <div>
-                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-full shadow-sm text-md font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                         Register
                     </button>
                 </div>
             </form>
+            <p class="text-center mt-4 text-sm text-gray-500">
+                หากมีบัญชีผู้ใช้แล้ว คุณสามารถ 
+                <a href="{% url 'login' %}" class="text-blue-500 no-underline">เข้าสู่ระบบ</a>
+            </p>
         </div>
     </div>
     
