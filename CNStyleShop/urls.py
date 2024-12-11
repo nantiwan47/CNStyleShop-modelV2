@@ -25,7 +25,8 @@ from django.urls import path, include
 urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),  # ตรวจสอบให้แน่ใจว่าถูกต้อง
     path("admin/", admin.site.urls),
-    path('account/', include('accounts.urls'))
+    path('account/', include('accounts.urls')),
+    path('product/', include('products.urls')),
 ]
 
 # เสริมสำหรับเสิร์ฟ Media Files ในโหมด Development
