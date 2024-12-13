@@ -19,14 +19,16 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 
 #python manage.py tailwind start
 
 urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),  # ตรวจสอบให้แน่ใจว่าถูกต้อง
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),
     path("admin/", admin.site.urls),
     path('account/', include('accounts.urls')),
-    path('product/', include('products.urls')),
+    path('manage/', include('products.urls')),
 ]
 
 # เสริมสำหรับเสิร์ฟ Media Files ในโหมด Development

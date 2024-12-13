@@ -23,14 +23,10 @@ class UserLoginView(LoginView):
     def get_success_url(self):
         # ตรวจสอบ role ของผู้ใช้
         if self.request.user.role == 'admin':
-            return reverse_lazy('dashboard')  # เส้นทางสำหรับ admin
-        return reverse_lazy('home')  # ไปที่หน้า home สำหรับ user
+            return reverse_lazy('products:dashboard')
+        return reverse_lazy('home')
 
-def dashboard(request):
-    return render(request, 'dashboard.html')
 
-def home(request):
-    return render(request, 'home.html')
 
 
 
