@@ -1,4 +1,4 @@
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
 from django.views.generic import *
 from django.shortcuts import render, redirect
@@ -23,10 +23,10 @@ class UserLoginView(LoginView):
     def get_success_url(self):
         # ตรวจสอบ role ของผู้ใช้
         if self.request.user.role == 'admin':
-            return reverse_lazy('products:dashboard')
+            return reverse_lazy('dashboard')
         return reverse_lazy('home')
 
-
-
+class AdminLogoutView(LogoutView):
+    next_page = reverse_lazy('login')
 
 
