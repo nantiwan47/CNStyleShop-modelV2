@@ -58,7 +58,7 @@ from .forms import ProductForm
 
 
 
-def product_create(request):
+def create_product(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
 

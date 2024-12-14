@@ -24,11 +24,11 @@ from django.views.generic import TemplateView
 #python manage.py tailwind start
 
 urlpatterns = [
-    path("__reload__/", include("django_browser_reload.urls")),  # ตรวจสอบให้แน่ใจว่าถูกต้อง
+    path("__reload__/", include("django_browser_reload.urls")),
     path('', TemplateView.as_view(template_name='home.html'), name='home'),
-    path("admin/", admin.site.urls),
+    path("dj-admin/", admin.site.urls),
     path('account/', include('accounts.urls')),
-    path('manage/', include('products.urls')),
+    path('admin/', include('products.urls')),
 ]
 
 # เสริมสำหรับเสิร์ฟ Media Files ในโหมด Development
