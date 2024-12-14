@@ -42,7 +42,11 @@ module.exports = {
         '../../**/*.py'
     ],
     theme: {
-        extend: {},
+        extend: {
+            spacing: {
+                '18': '4.5rem',  // เพิ่ม mt-18 หรือ pt-18 เท่ากับ 4.5rem (72px)
+            },
+        },
     },
     plugins: [
         /**

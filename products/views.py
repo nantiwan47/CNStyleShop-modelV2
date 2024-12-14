@@ -4,6 +4,10 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .forms import ProductForm
+from .models import *
+from django.db.models import Min, Max
+from django.core.paginator import Paginator
+
 
 # def create_product_view(request):
 #     if request.method == 'POST':
@@ -53,12 +57,32 @@ from .forms import ProductForm
 #
 #         return JsonResponse({'message': 'Product created successfully!'})
 #
-#     return render(request, 'products/create_product.html')
+#     return render(request, 'products/product_create.html')
 
+def product_list(request):
+    # รับค่าคำค้นหาจาก URL
+    query = request.GET.get('search', '')  # กรณีที่ไม่มีคำค้นหาจะเป็นค่าว่าง
 
+    # ดึงข้อมูลสินค้าทั้งหมดพร้อมราคาต่ำสุดและสูงสุด และกรองตามคำค้นหา
+    products = Product.objects.annotate(
+        min_price=Min('options__price'),
+        max_price=Max('options__price'),
+    ).filter(name__icontains=query)
 
+    # แบ่งเพจ - 10 รายการต่อหน้า
+    paginator = Paginator(products, 10)  # แบ่งสินค้าทีละ 10 รายการ
+    page_number = request.GET.get('page')  # รับหมายเลขหน้าจาก query string
+    page_obj = paginator.get_page(page_number)  # สร้าง object ของหน้าที่กำลังดู
 
-def create_product(request):
+    # นับจำนวนสินค้าทั้งหมด
+    total_products = Product.objects.count()
+
+    return render(request, 'products/product_list.html', {
+        'page_obj': page_obj,
+        'total_products': total_products,
+        'query': query})
+
+def product_create(request):
     if request.method == 'POST':
         form = ProductForm(request.POST, request.FILES)
 
@@ -70,7 +94,7 @@ def create_product(request):
             messages.error(request, "มีข้อผิดพลาดในการบันทึกสินค้า")
     else:
         form = ProductForm()
-    return render(request, 'products/create_product.html', {'form': form})
+    return render(request, 'products/product_create.html', {'form': form})
 
 def dashboard(request):
     return render(request, 'products/dashboard.html')

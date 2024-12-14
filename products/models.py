@@ -7,7 +7,7 @@ def upload_to(instance, filename):
 
 # ฟังก์ชันสำหรับกำหนดเส้นทางการอัปโหลดรูปภาพสีของินค้า
 def upload_color(instance, filename):
-    return f"product/color_images/{instance.color}_{filename}"
+    return f"product/color_images/{instance.id}_{filename}"
 
 # ตารางสินค้า
 class Product(models.Model):
