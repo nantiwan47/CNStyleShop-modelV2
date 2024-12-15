@@ -1,4 +1,5 @@
 {% extends 'base_admin.html' %}
+{% load static %}
 
 {% block content %}
 <div class="">
@@ -9,7 +10,7 @@
             <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded">ค้นหา</button>
         </form>        
         
-        <a href="#" class="bg-green-500 text-white py-2 px-4 rounded">เพิ่มสินค้า</a>
+        <a href="{% url 'product_create' %}" class="bg-green-500 text-white py-2 px-4 rounded">เพิ่มสินค้า</a>
     </div>
     
     <table class="bg-white rounded-md shadow-lg">
@@ -37,8 +38,10 @@
                     {% endif %}
                     
                     <td class="px-4 py-2">
-                        <a href="#" class="bg-blue-500 text-white py-1 px-3 rounded">Edit</a>
-                        <a href="#" class="bg-red-500 text-white py-1 px-3 rounded">Delete</a>
+                        <a href="{% url 'product_edit' product.id %}" class="bg-blue-500 text-white py-1 px-3 rounded">Edit</a>
+                        <button class="delete-btn bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-red-600 transition duration-200 ml-4" data-id="{{ product.id }}">
+                                ลบ
+                        </button>
                     </td>
                 </tr>
             {% empty %}
@@ -118,6 +121,40 @@
     {% endif %}
 </div>
     </div>
-
-
+           
+<script>
+    // จัดการเหตุการณ์การลบ
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const productID = this.getAttribute('data-id');
+            Swal.fire({
+                title: 'ยืนยันการลบ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#f44336',
+                cancelButtonColor: '#B0BEC5',
+                confirmButtonText: 'ลบ',
+                cancelButtonText: 'ยกเลิก',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/admin/product/delete/${productID}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    }).then(response => {
+                        if (response.ok) {
+                            Swal.fire('ลบเรียบร้อย!', '', 'success').then(() => {
+                                window.location.reload(); // รีเฟรชหน้าเพื่อดูการเปลี่ยนแปลง
+                            });
+                        } else {
+                            Swal.fire('เกิดข้อผิดพลาด!', '', 'error');
+                        }
+                    });
+                }
+            });
+        });
+    });
+            </script>
+ 
 {% endblock %}

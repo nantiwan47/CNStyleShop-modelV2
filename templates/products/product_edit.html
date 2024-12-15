@@ -1,0 +1,164 @@
+{% extends 'base_admin.html' %}
+
+{% block content %}
+    <h1>แก้ไขสินค้า</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <h2>ข้อมูลสินค้า</h2>
+        <label for="name">ชื่อสินค้า:</label>
+        <input type="text" name="name" id="name" value="{{ product.name }}" required><br><br>
+
+        <label for="description">รายละเอียด:</label>
+        <textarea name="description" id="description" rows="4" required>{{ product.description }}</textarea><br><br>
+
+        <label for="category">ประเภทสินค้า:</label>
+        <select name="category" id="category" required>
+            <option value="" disabled>-- เลือกประเภทสินค้า --</option>
+            {% for key, value in product.CATEGORY_CHOICES %}
+                <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="cover_image">รูปภาพปกสินค้า:</label>
+        <input type="file" name="cover_image" id="cover_image" onchange="previewImage(event, 'cover_image_preview')">
+        <div id="cover_image_preview">
+            <img src="{{ product.cover_image.url }}" alt="Preview" style="max-width: 200px; margin-top: 10px;">
+        </div><br><br>
+
+        <h2>ตัวเลือกสินค้า</h2>
+        <div id="options-container">
+            {% for option in options %}
+                <div class="option">
+                    <label for="color">สี:</label>
+                    <input type="text" name="color" value="{{ option.color }}" required>
+                    <label for="size">ขนาด:</label>
+                    <input type="text" name="size" value="{{ option.size }}" required>
+                    <label for="price">ราคา:</label>
+                    <input type="number" name="price" value="{{ option.price }}" required>
+                    <button class="remove-btn" onclick="removeOption(this)">ลบ</button>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" onclick="addOption()">เพิ่มตัวเลือกสินค้า</button><br><br>
+
+        <h2>เพิ่มรูปภาพเพิ่มเติม</h2>
+        <div id="imageFields">
+            {% for image in images %}
+                <div class="upload-container" data-id="{{ image.id }}">
+                    <img src="{{ image.image.url }}" alt="รูปภาพเพิ่มเติม" style="max-width: 200px; margin-top: 10px;">
+                    <button type="button" class="remove-image-btn" onclick="markImageForDeletion(this)">ลบ</button>
+                    <input type="hidden" name="keep_images" value="{{ image.id }}">
+                </div>
+            {% endfor %}
+        </div>
+       <div id="errorMessage" style="display:none; color: red;">คุณสามารถอัปโหลดรูปภาพได้ไม่เกิน 4 รูป</div>
+
+        <button type="button" id="addImageField">เพิ่มรูป</button>
+
+        <button type="submit">บันทึก</button>
+    </form>
+
+    <script>
+        //  ฟังก์ชันเพิ่มตัวเลือกสินค้า
+
+        function addOption() {
+            const optionsContainer = document.getElementById("options-container");
+
+            // สร้าง div ใหม่สำหรับตัวเลือก
+            const optionDiv = document.createElement("div");
+            optionDiv.classList.add("option");
+
+            // สร้างช่องกรอกข้อมูลใหม่
+            optionDiv.innerHTML = `
+                <label for="color">สี:</label>
+                <input type="text" name="color" required>
+                <label for="size">ขนาด:</label>
+                <input type="text" name="size" required>
+                <label for="price">ราคา:</label>
+                <input type="number" name="price" required>
+                <button class="remove-btn" onclick="removeOption(this)">ลบ</button>
+            `;
+            
+            // เพิ่มตัวเลือกใหม่เข้าไปใน container
+            optionsContainer.appendChild(optionDiv);
+        }
+
+        // ฟังก์ชันสำหรับลบตัวเลือกสินค้า
+        function removeOption(button) {
+            const optionDiv = button.parentElement;  // หา div ของตัวเลือก
+            optionDiv.remove();  // ลบ div ที่เก็บช่องกรอกข้อมูล
+        }
+
+       // ฟังก์ชันแสดงตัวอย่างภาพที่อัปโหลด
+function previewImage(event, previewClass) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function() {
+        // ใช้ querySelector เพื่อหาตัวอย่างภาพที่ต้องการ
+        const previewContainers = document.querySelectorAll(`.${previewClass}`);
+
+        // ตรวจสอบว่าเราพบ previewContainer ที่ต้องการหรือไม่
+        if (previewContainers.length > 0) {
+            const previewContainer = previewContainers[previewContainers.length - 1]; // ใช้ตัวสุดท้ายที่ถูกสร้าง
+            previewContainer.innerHTML = `<img src="${reader.result}" alt="Preview" style="max-width: 200px; margin-top: 10px;">`;
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+// เพิ่มช่องอัปโหลดรูปภาพใหม่
+let imageCounter = 1;
+const maxFields = 4;
+const addImageFieldButton = document.getElementById("addImageField");
+const imageFieldsContainer = document.getElementById("imageFields");
+const errorMessage = document.getElementById("errorMessage");
+
+addImageFieldButton.addEventListener("click", () => {
+    const currentFields = document.querySelectorAll('.upload-container').length;
+
+    if (currentFields >= maxFields) {
+        // แสดงข้อความแจ้งเตือนถ้าเกิน 4 รูป
+        errorMessage.style.display = "block";
+        return;
+    }
+
+    // ซ่อนข้อความแจ้งเตือน
+    errorMessage.style.display = "none";
+
+    // สร้างช่องอัปโหลดใหม่
+    const uploadContainer = document.createElement("div");
+    uploadContainer.classList.add("upload-container");
+
+    const inputField = document.createElement("input");
+    inputField.type = "file";
+    inputField.name = "new_images";
+    inputField.accept = "image/*";
+    inputField.setAttribute("onchange", `previewImage(event, 'additional_image_preview_${imageCounter}')`);
+
+    // สร้างตัวอย่างภาพ
+    const previewContainer = document.createElement("div");
+    previewContainer.classList.add('additional_image_preview');  // ใช้ class แทน id
+
+    // ปุ่มลบช่อง
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "ลบ";
+    removeButton.addEventListener("click", () => {
+        uploadContainer.remove();
+        errorMessage.style.display = "none";
+    });
+
+    uploadContainer.appendChild(inputField);
+    uploadContainer.appendChild(previewContainer);
+    uploadContainer.appendChild(removeButton);
+    imageFieldsContainer.appendChild(uploadContainer);
+
+    imageCounter++;
+});
+
+
+        
+    </script>
+
+{% endblock %}

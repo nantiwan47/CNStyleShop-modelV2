@@ -5,9 +5,11 @@ from django.core.validators import FileExtensionValidator
 def upload_to(instance, filename):
     return f"product/{instance.category}/{filename}"
 
-# ฟังก์ชันสำหรับกำหนดเส้นทางการอัปโหลดรูปภาพสีของินค้า
-def upload_color(instance, filename):
-    return f"product/color_images/{instance.id}_{filename}"
+# ฟังก์ชันสำหรับกำหนดเส้นทางการอัปโหลดรูปภาพเพิ่มเติมของสินค้า
+def upload_gallery(instance, filename):
+    product_id = instance.product.id if instance.product.id else "0"
+    return f"product/gallery/{product_id}_{filename}"
+
 
 # ตารางสินค้า
 class Product(models.Model):
@@ -44,23 +46,10 @@ class Product(models.Model):
         verbose_name = "สินค้า"
         verbose_name_plural = "สินค้าทั้งหมด"
 
-# ตารางสีสินค้า
-class ProductColor(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='colors')
-    color = models.CharField(max_length=50)
-    image = models.ImageField(upload_to=upload_color)
-
-    class Meta:
-        verbose_name = "ตัวเลือกสีสินค้า"
-        verbose_name_plural = "ตัวเลือกสีสินค้าทั้งหมด"
-
-    def __str__(self):
-        return f"{self.product.name} - {self.color}"
-
 # ตารางตัวเลือกสินค้า
 class ProductOption(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="options")
-    color = models.ForeignKey(ProductColor, on_delete=models.CASCADE, related_name='options')
+    color = models.CharField(max_length=50)
     size = models.CharField(max_length=50)
     price = models.PositiveIntegerField()
 
@@ -69,4 +58,15 @@ class ProductOption(models.Model):
         verbose_name_plural = "ตัวเลือกสินค้าทั้งหมด"
 
     def __str__(self):
-        return f"{self.product.name} - {self.color.color} - {self.size}"
+        return f"{self.product.name} - {self.color} - {self.size}"
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to=upload_gallery)
+
+    class Meta:
+        verbose_name = "รูปภาพสินค้าเพิ่มเติม"
+        verbose_name_plural = "รูปภาพสินค้าเพิ่มเติมทั้งหมด"
+
+    def __str__(self):
+        return f"{self.product.name} - {self.image}"

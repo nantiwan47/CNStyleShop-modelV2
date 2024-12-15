@@ -88,7 +88,7 @@ NPM_BIN_PATH = r"C:\Program Files\nodejs\npm.cmd"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "dbV2.sqlite3",
     }
 }
 

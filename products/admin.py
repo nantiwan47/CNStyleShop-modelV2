@@ -1,33 +1,55 @@
 from django.contrib import admin
-from products.models import Product, ProductOption, ProductColor
+from .models import Product, ProductOption, ProductImage
+from django.utils.html import mark_safe
 
-# ProductColor Inline (ยังคงแสดงในหน้า Product)
-class ProductColorInline(admin.TabularInline):
-    model = ProductColor
-    extra = 1
-    fields = ('color', 'image')
 
-# Product Admin (แสดงเฉพาะ ProductColorInline)
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
+    extra = 1  # จำนวนแถวที่เพิ่มขึ้นใหม่ได้ในฟอร์ม
+    fields = ['image', 'preview_image']
+    readonly_fields = ['preview_image']
+
+    def preview_image(self, obj):
+        if obj.image:
+            return mark_safe(f'<img src="{obj.image.url}" width="100" />')
+        return "No image"
+
+
+class ProductOptionInline(admin.TabularInline):
+    model = ProductOption
+    extra = 1  # จำนวนแถวที่เพิ่มขึ้นใหม่ได้ในฟอร์ม
+    fields = ['color', 'size', 'price']
+
+
+@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductColorInline]
-    list_display = ('name', 'category', 'created_at', 'updated_at')
-    search_fields = ('name', 'category')
-    list_filter = ('category', 'created_at')
+    list_display = ['name', 'category', 'cover_image_preview', 'created_at', 'updated_at']
+    search_fields = ['name', 'category']
+    list_filter = ['category']
+    # inlines = [ProductOptionInline, ProductImageInline]  # รวมตัวเลือกสินค้าและรูปภาพสินค้าในหน้าเดียวกัน
 
-# ProductOption Admin (แยกหน้าจัดการของตัวเอง)
+    def cover_image_preview(self, obj):
+        if obj.cover_image:
+            return mark_safe(f'<img src="{obj.cover_image.url}" width="100" />')
+        return "No image"
+
+    cover_image_preview.short_description = 'Cover Image Preview'
+
+
+@admin.register(ProductOption)
 class ProductOptionAdmin(admin.ModelAdmin):
-    list_display = ('product', 'size', 'color', 'price')
-    list_filter = ('product', 'color', 'size')
-    search_fields = ('product__name', 'size', 'color')
-    autocomplete_fields = ['product', 'color']  # ช่วยเลือกสินค้าและสีได้ง่าย
+    list_display = ['product', 'color', 'size', 'price']
+    search_fields = ['product__name', 'color', 'size']
 
-# ProductColor Admin (ถ้าต้องการแสดงในหน้าแยกด้วย)
-class ProductColorAdmin(admin.ModelAdmin):
-    list_display = ('product', 'color')
-    list_filter = ('product',)
-    search_fields = ('product__name', 'color')
 
-# Register Models
-admin.site.register(Product, ProductAdmin)
-admin.site.register(ProductColor, ProductColorAdmin)
-admin.site.register(ProductOption, ProductOptionAdmin)
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ['product', 'image', 'image_preview']
+    search_fields = ['product__name']
+
+    def image_preview(self, obj):
+        if obj.image:
+            return mark_safe(f'<img src="{obj.image.url}" width="100" />')
+        return "No image"
+
+    image_preview.short_description = 'Image Preview'

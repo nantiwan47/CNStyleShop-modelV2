@@ -1,29 +1,153 @@
-{% load static tailwind_tags %}
-    {% tailwind_css %}
+{% extends 'base_admin.html' %}
 
+{% block content %}
+    <h1>เพิ่มสินค้า</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
 
-<div class="bg-gray-100">
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    
-        <div class="max-w-4xl mx-auto mt-10 bg-white shadow-md rounded-lg p-8">
-            
-        <h1 class="text-xl font-bold text-gray-800 mb-6">ข้อมูลทั่วไป</h1>
+        <h2>ข้อมูลสินค้า</h2>
         <label for="name">ชื่อสินค้า:</label>
-        {{ form.name }}
-            
-        <label for="description">คำอธิบายสินค้า:</label>
-        {{ form.description }}
+        <input type="text" name="name" id="name" required><br><br>
+
+        <label for="description">รายละเอียด:</label>
+        <textarea name="description" id="description" rows="4" required></textarea><br><br>
 
         <label for="category">ประเภทสินค้า:</label>
-        {{ form.category }}
+        <select name="category" id="category" required>
+            <option value="" disabled selected>-- เลือกประเภทสินค้า --</option>
+            <option value="blouse">เสื้อเบล้าส์(เสื้อผ้าผู้หญิง)</option>
+            <option value="dress">ชุดเดรส</option>
+            <option value="jacket">แจ็คเก็ต</option>
+            <option value="jeans">ยีนส์</option>
+            <option value="shirt">เสื้อเชิ้ต</option>
+            <option value="tshirt">เสื้อยืด</option>
+            <option value="shorts">กางเกงขาสั้น</option>
+            <option value="skirt">กระโปรง</option>
+        </select><br><br>
+
+        <label for="cover_image">รูปภาพปกสินค้า:</label>
+        <input type="file" name="cover_image" id="cover_image" required onchange="previewImage(event, 'cover_image_preview')"><br><br>
+        <div id="cover_image_preview"></div> <!-- Image preview container -->
+
+        <h2>ตัวเลือกสินค้า</h2>
+        <div id="options-container">
+            <div class="option">
+                <label for="color">สี:</label>
+                <input type="text" name="color" required>
+                <label for="size">ขนาด:</label>
+                <input type="text" name="size" required>
+                <label for="price">ราคา:</label>
+                <input type="number" name="price" required>
+            </div>
+        </div>
+        <button type="button" onclick="addOption()">เพิ่มตัวเลือกสินค้า</button><br><br>
+
+        <h2>เพิ่มรูปภาพเพิ่มเติม</h2>
+        <div id="imageFields">
+            <!-- Default field -->
+            <div class="upload-container">
+                <input type="file" name="images" accept="image/*" required onchange="previewImage(event, 'additional_image_preview_0')">
+                <div id="additional_image_preview_0"></div> <!-- Image preview container for first image -->
+            </div>
+        </div>
+        <button type="button" id="addImageField">เพิ่มรูป</button>
+        <div class="error-message" id="errorMessage">คุณสามารถเพิ่มรูปภาพได้ไม่เกิน 4 รูป</div>
+        <br><br>
+
+        <button type="submit">บันทึกสินค้า</button>
+    </form>
+
+    <script>
+        // ฟังก์ชันสำหรับเพิ่มตัวเลือกสินค้าใหม่
+        function addOption() {
+            const optionsContainer = document.getElementById("options-container");
+
+            // สร้าง div ใหม่สำหรับตัวเลือก
+            const optionDiv = document.createElement("div");
+            optionDiv.classList.add("option");
+
+            // สร้างช่องกรอกข้อมูลใหม่
+            optionDiv.innerHTML = `
+                <label for="color">สี:</label>
+                <input type="text" name="color" required>
+                <label for="size">ขนาด:</label>
+                <input type="text" name="size" required>
+                <label for="price">ราคา:</label>
+                <input type="number" name="price" required>
+                <button class="remove-btn" onclick="removeOption(this)">ลบ</button>
+            `;
+            
+            // เพิ่มตัวเลือกใหม่เข้าไปใน container
+            optionsContainer.appendChild(optionDiv);
+        }
+
+        // ฟังก์ชันสำหรับลบตัวเลือกสินค้า
+        function removeOption(button) {
+            const optionDiv = button.parentElement;  // หา div ของตัวเลือก
+            optionDiv.remove();  // ลบ div ที่เก็บช่องกรอกข้อมูล
+        }
+
+        // ฟังก์ชันแสดงตัวอย่างภาพที่อัปโหลด
+        function previewImage(event, previewId) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function() {
+                const previewContainer = document.getElementById(previewId);
+                previewContainer.innerHTML = `<img src="${reader.result}" alt="Preview" style="max-width: 200px; margin-top: 10px;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // เพิ่มช่องอัปโหลดรูปภาพใหม่
+        let imageCounter = 1;
+
+        const maxFields = 4;
+        const addImageFieldButton = document.getElementById("addImageField");
+        const imageFieldsContainer = document.getElementById("imageFields");
+        const errorMessage = document.getElementById("errorMessage");
+
+        addImageFieldButton.addEventListener("click", () => {
+            const currentFields = document.querySelectorAll('.upload-container').length;
+
+            if (currentFields >= maxFields) {
+                // แสดงข้อความแจ้งเตือนถ้าเกิน 4 รูป
+                errorMessage.style.display = "block";
+                return;
+            }
+
+            // ซ่อนข้อความแจ้งเตือน
+            errorMessage.style.display = "none";
+
+            // สร้างช่องอัปโหลดใหม่
+            const uploadContainer = document.createElement("div");
+            uploadContainer.classList.add("upload-container");
+
+            const inputField = document.createElement("input");
+            inputField.type = "file";
+            inputField.name = "images";
+            inputField.accept = "image/*";
+            inputField.setAttribute("onchange", `previewImage(event, 'additional_image_preview_${imageCounter}')`);
+
+            // สร้างตัวอย่างภาพ
+            const previewContainer = document.createElement("div");
+            previewContainer.id = `additional_image_preview_${imageCounter}`;
+
+            // ปุ่มลบช่อง
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.textContent = "ลบ";
+            removeButton.addEventListener("click", () => {
+                uploadContainer.remove();
+                errorMessage.style.display = "none";
+            });
+
+            uploadContainer.appendChild(inputField);
+            uploadContainer.appendChild(previewContainer);
+            uploadContainer.appendChild(removeButton);
+            imageFieldsContainer.appendChild(uploadContainer);
+
+            imageCounter++;
+        });
+    </script>
     
-    </div>
-    
-    
-    <div>
-        <label for="cover_image">รูปภาพหน้าปก:</label>
-        {{ form.cover_image }}
-    </div>
-</form>
-</div>
+{% endblock %}
