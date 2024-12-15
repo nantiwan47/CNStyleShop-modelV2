@@ -16,8 +16,8 @@ class Product(models.Model):
         ('dress', 'ชุดเดรส'),
         ('jacket', 'แจ็คเก็ต'),
         ('jeans', 'ยีนส์'),
-        ('shirt', 'เสื้อเชิ้ต'),
         ('tshirt', 'เสื้อยืด'),
+        ('shirt', 'เสื้อเชิ้ต'),
         ('shorts', 'กางเกงขาสั้น'),
         ('skirt', 'กระโปรง'),
     ]

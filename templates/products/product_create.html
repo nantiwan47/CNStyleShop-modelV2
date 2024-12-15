@@ -1,29 +1,59 @@
-{% load static tailwind_tags %}
-    {% tailwind_css %}
+{% extends 'base_admin.html' %}
 
-
-<div class="bg-gray-100">
-<form method="POST" enctype="multipart/form-data">
+{% block content %}
+    
+<form method="post" id="productForm" enctype="multipart/form-data">
     {% csrf_token %}
     
-        <div class="max-w-4xl mx-auto mt-10 bg-white shadow-md rounded-lg p-8">
-            
-        <h1 class="text-xl font-bold text-gray-800 mb-6">ข้อมูลทั่วไป</h1>
-        <label for="name">ชื่อสินค้า:</label>
-        {{ form.name }}
-            
-        <label for="description">คำอธิบายสินค้า:</label>
-        {{ form.description }}
+     <label for="id_name">ชื่อสินค้า:</label>
+    <input type="text" name="name" id="id_name" placeholder="ชื่อสินค้า" required><br><br>
 
-        <label for="category">ประเภทสินค้า:</label>
-        {{ form.category }}
-    
+    <label for="id_description">คำอธิบายสินค้า:</label>
+    <textarea name="description" id="id_description" placeholder="คำอธิบายสินค้า" required></textarea><br><br>
+
+    <label for="id_category">หมวดหมู่:</label>
+        <select name="category" required id="id_category">
+            <option value="blouse">เสื้้อเบล้าส์(เสื้อผู้หญิง)</option>
+            <option value="dress">ชุดเดรส</option>
+            <option value="jacket">แจ็คเก็ต</option>
+            <option value="jeans">ยีนส์</option>
+            <option value="shirt">เสื้อเชิ้ต</option>
+            <option value="tshirt">เสื้อยืด</option>
+            <option value="shorts">กางเกงขาสั้น</option>
+            <option value="skirt">กระโปรง</option>
+        </select>
+
+    <label>ภาพปกสินค้า:</label>
+    <input type="file" name="cover_image" required><br><br>
+
+
+    <h3>ตัวเลือกสีและไซส์สินค้า</h3>
+    <div id="color-options-container">
+        <div class="color-option">
+            <label>สี:</label>
+            <input type="text" name="colors[]" required>
+
+            <label>อัปโหลดภาพสำหรับสีนี้:</label>
+            <input type="file" name="color_images[]"  required>
+
+            <h4>ตัวเลือกไซส์และราคา</h4>
+            <div class="size-price-container">
+                <label >Size:</label>
+                <input type="text" name="sizes[]" required>
+                
+                <label>ราคา:</label>
+                <input type="text" name="prices[]"  required>
+            </div>
+        <button type="button" class="add-size-button" onclick="addSizeOption(this)">เพิ่มไซส์</button><br><br>
+        </div>
     </div>
-    
-    
-    <div>
-        <label for="cover_image">รูปภาพหน้าปก:</label>
-        {{ form.cover_image }}
-    </div>
+
+    <button type="button" onclick="addColorOption()">เพิ่มสีใหม่</button>
+
+    <input type="hidden" id="products-data" name="products">
+    <button type="submit" onclick="prepareData(event)">บันทึกสินค้า</button>
 </form>
-</div>
+    {% load static %}
+
+    <script src="{% static 'js/products/addOption.js' %}"></script>
+{% endblock %}
