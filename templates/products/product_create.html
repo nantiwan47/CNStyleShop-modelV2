@@ -1,143 +1,183 @@
 {% extends 'base_admin.html' %}
 
 {% block content %}
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        
-        <div class="bg-white p-10 rounded-xl shadow-sm">
-            <h1 class="text-xl font-semibold mb-4 text-gray-700">ข้อมูลทั่วไป</h1>
-            <div class="space-y-4 px-20">
-                <div>
-                    <label for="name" class="block text-gray-600 font-medium mb-1">ชื่อสินค้า:</label>
-                    <input type="text" name="name" id="name" class="w-full p-2 border: rounded focus:ring-gray-500 focus:border-gray-500" required>
-                </div>
-                
-                <div>
-                    <label for="description" class="block text-gray-700 font-medium mb-1">รายละเอียด:</label>
-                    <textarea name="description" id="description" rows="4" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required></textarea>
-                </div>
-                
-                <div>
-                    <label for="category" class="block text-gray-700 font-medium mb-1">ประเภทสินค้า:</label>
-                    <select name="category" id="category" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <option value="" disabled selected>-- เลือกประเภทสินค้า --</option>
-                        <option value="blouse">เสื้อเบล้าส์(เสื้อผู้้หญิง)</option>
-                        <option value="dress">ชุดเดรส</option>
-                        <option value="jacket">แจ็คเก็ต</option>
-                        <option value="jeans">ยีนส์</option>
-                        <option value="shirt">เสื้อเชิ้ต</option>
-                        <option value="tshirt">เสื้อยืด</option>
-                        <option value="shorts">กางเกงขาสั้น</option>
-                        <option value="skirt">กระโปรง</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800">ข้อมูลการขาย</h2>
-            <div id="options-container" class="flex items-center space-x-4">
-                <div class="flex-1">
-                    <label for="color" class="block text-gray-700 font-medium mb-1">สี:</label>
-                    <input type="text" name="color" id="color" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <div class="flex-1">
-                    <label for="size" class="block text-gray-700 font-medium mb-1">ขนาด:</label>
-                    <input type="text" name="size" id="size" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required>
-                </div>
-                <div class="flex-1">
-                    <label for="price" class="block text-gray-700 font-medium mb-1">ราคา:</label>
-                    <input type="number" name="price" id="price" class="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500" required>
-                </div>
-            </div>
-            <button type="button" onclick="addOption()" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">เพิ่มตัวเลือกสินค้า</button>
-        </div>
-        
-        <div>
-            <h1 class="text-xl font-semibold mb-4 text-gray-800">ข้อมูลรูปภาพ</h1>
-            <div class="mb-4">
-                <label for="cover_image" class="block text-gray-700 font-medium mb-2">รูปภาพปกสินค้า:</label>
-                <!-- พื้นที่แสดงภาพที่อัปโหลด -->
-                <div id="cover_image_preview" class="mt-4 w-40 h-40 border-dashed border-2 flex items-center justify-center text-gray-400"></div>
-                <!-- พื้นที่แสดงภาพที่อัปโหลด -->
-                <input type="file" accept=".jpg, .jpeg, .png" name="cover_image" id="cover_image" class="w-full">
-            </div>
-            <h2>เพิ่มรูปภาพเพิ่มเติม</h2>
+<form method="POST" enctype="multipart/form-data" class="px-24 space-y-4">
+    {% csrf_token %}
+    
+    <!-- ข้อมูลทั่วไป -->
+    <div class="bg-white p-10 rounded-xl shadow-sm">
+        <h1 class="text-xl font-semibold mb-6 text-gray-700">ข้อมูลทั่วไป</h1>
+        <div class="space-y-6 px-24">
             <div>
-                <span>คุณสามารถเพิ่มรูปภาพได้ไม่เกิน 4 รูป</span>
-                <h2 class="text-lg font-semibold mb-4">เพิ่มรูปภาพเพิ่มเติม</h2>
-                <div id="image-upload-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+                <label for="name" class="block text-gray-600 font-medium mb-2">ชื่อสินค้า:</label>
+                <input type="text" name="name" id="name" 
+                       class="w-full p-2 border border-gray-400 rounded-lg" 
+                       required>
+            </div>
+
+            <div>
+                <label for="description" class="block text-gray-600 font-medium mb-2">รายละเอียด:</label>
+                <textarea name="description" id="description" rows="12" 
+                          class="w-full p-2 border border-gray-400 rounded-lg" 
+                          required></textarea>
+            </div>
+
+            <div>
+                <label for="category" class="block text-gray-600 font-medium mb-2">ประเภทสินค้า:</label>
+                <select name="category" id="category" 
+                        class="w-full p-2 border border-gray-400 rounded-lg" 
+                        required>
+                    <option value="" disabled selected>-- เลือกประเภทสินค้า --</option>
+                    <option value="blouse">เสื้อเบล้าส์(เสื้อผู้หญิง)</option>
+                    <option value="dress">ชุดเดรส</option>
+                    <option value="jacket">แจ็คเก็ต</option>
+                    <option value="jeans">ยีนส์</option>
+                    <option value="shirt">เสื้อเชิ้ต</option>
+                    <option value="tshirt">เสื้อยืด</option>
+                    <option value="shorts">กางเกงขาสั้น</option>
+                    <option value="skirt">กระโปรง</option>
+                </select>
             </div>
         </div>
-        <button type="submit">บันทึกสินค้า</button>
-    </form>
+    </div>
+
+    <!-- ข้อมูลการขาย -->
+    <div class="bg-white p-10 rounded-xl shadow-sm">
+        <h1 class="text-xl font-semibold mb-6 text-gray-700">ข้อมูลการขาย</h1>
+        <div class="space-y-4 px-24">
+            <div id="options-container" >
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label for="color" class="block text-gray-600 font-medium mb-2">สี</label>
+                        <input type="text" name="color" id="color" 
+                               class="w-full p-2 border border-gray-400 rounded-lg" 
+                               required>
+                    </div>
+                    <div>
+                        <label for="size" class="block text-gray-600 font-medium mb-2">ขนาด</label>
+                        <input type="text" name="size" id="size" 
+                               class="w-full p-2 border border-gray-400 rounded-lg" 
+                               required>
+                    </div>
+                    <div>
+                        <label for="price" class="block text-gray-600 font-medium mb-2">ราคา</label>
+                        <input type="number" name="price" id="price" 
+                               class="w-full p-2 border border-gray-400 rounded-lg" 
+                               required>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <button type="button" onclick="addOption()" 
+                        class="flex items-center justify-center w-full text-blue-600 border border-blue-500 rounded-lg py-2 hover:bg-blue-50">
+                    <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path>
+                    </svg>
+                    <span>เพิ่มตัวเลือกสินค้า</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ข้อมูลรูปภาพ -->
+    <div class="bg-white p-10 rounded-xl shadow-sm">
+        <h1 class="text-xl font-semibold mb-6 text-gray-700">ข้อมูลรูปภาพ</h1>
+        <div class="space-y-6 px-24">
+            <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                <!-- แสดรูปภาพ -->
+                <div id="cover_image_preview" 
+                     class="w-40 h-40 border-2 border-dashed border-gray-400 flex items-center justify-center rounded-lg bg-gray-100 overflow-hidden">
+                    <span class="text-gray-500 text-sm">รูปภาพปกสินค้า</span>
+                </div>
+
+                <!-- ช่องอัปโหลด -->
+                <div >
+                    <label for="cover_image" class="block text-gray-600 font-medium mb-10">รูปภาพปกสินค้า</label>
+                    <input type="file" name="cover_image" id="cover_image" 
+                           accept=".jpg, .jpeg, .png" 
+                           onchange="previewImage(event, 'cover_image_preview')"
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                    <p class="text-xs text-gray-500 mt-3">ไฟล์ที่รองรับ: .jpg, .jpeg, .png</p>
+                </div>
+            </div>
+ 
+            <div>
+                <h2 class="text-md font-semibold mb-2 text-gray-600">เพิ่มรูปภาพเพิ่มเติม</h2>
+                <span class="block text-sm text-gray-500 mb-4">สามารถเพิ่มรูปภาพได้ไม่เกิน 4 รูป</span>
+                <div id="image-upload-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ปุ่มบันทึกสินค้า -->
+    <div class="text-right mb-10">
+        <button type="submit" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg focus:ring-4 focus:ring-blue-300">
+            บันทึกสินค้า
+        </button>
+    </div>
+</form>
 
     <script>
-    
+
         const totalBlocks = 4; // จำนวนบล็อกที่ต้องการสร้าง
         const container = document.getElementById('image-upload-container');
-    
+
         for (let i = 0; i < totalBlocks; i++) {
             const block = `
                 <div class="flex flex-col items-center">
                     <!-- พื้นที่แสดงรูปภาพ -->
-                    <div id="images_preview_${i}" 
+                    <div id="images_preview_${i}"
                          class="w-40 h-40 mb-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 overflow-hidden">
                         <span class="text-gray-400">รูปภาพ</span>
                     </div>
                     <!-- ช่องอัปโหลดไฟล์ -->
-                    <input type="file" 
-                           name="images" 
-                           accept=".jpg, .jpeg, .png" 
+                    <input type="file"
+                           name="images"
+                           accept=".jpg, .jpeg, .png"
                            onchange="previewImage(event, 'images_preview_${i}')"
                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', block);
         }
-        
+
         // ฟังก์ชันเพิ่มตัวเลือกสินค้าใหม่
         function addOption() {
             const optionsContainer = document.getElementById("options-container");
             const optionDiv = document.createElement("div");
             optionDiv.classList.add("option");
             optionDiv.innerHTML = `
-                <label>สี:</label><input type="text" name="color" required>
-                <label>ขนาด:</label><input type="text" name="size" required>
-                <label>ราคา:</label><input type="number" name="price" required>
-                <button type="button" onclick="this.parentElement.remove()">ลบ</button>
+                <div class="flex items-end justify-between mt-4 gap-4">
+                    <div>
+                        <label class="block text-gray-600 font-medium mb-2">สี</label>
+                        <input type="text" name="color" id="color" class="w-full p-2 border border-gray-400 rounded-lg" required>
+                    </div>                   
+                    <div>                   
+                        <label for="size" class="block text-gray-600 font-medium mb-2">ขนาด</label>    
+                        <input type="text" name="size" id="size" class="w-full p-2 border border-gray-400 rounded-lg" required>
+                    </div>            
+                    <div>
+                        <label for="price" class="block text-gray-600 font-medium mb-2">ราคา</label>          
+                        <input type="number" name="price" id="price" class="w-full p-2 border border-gray-400 rounded-lg" required>        
+                    </div>                   
+                    <div class="self-end">
+                        <button type="button" onclick="this.closest('.option').remove()"    
+                            class="bg-red-500 hover:bg-red-600 text-white font-medium px-2 py-1 text-xs rounded-lg">
+                                 ลบ     
+                        </button>
+                    </div>               
+                </div>      
             `;
             optionsContainer.appendChild(optionDiv);
         }
 
-        // ฟังก์ชันเพิ่มช่องอัปโหลดรูปภาพ
-        function addImageField() {
-            const imageFields = document.getElementById("imageFields");
-             
-            // สร้างช่องอัปโหลดไฟล์ใหม่
-            const imageField = document.createElement("input");
-            imageField.type = "file";
-            imageField.name = "images";
-            
-            // สร้าง ID ที่ไม่ซ้ำกันสำหรับแต่ละช่องอัปโหลด
-            const previewId = `image_preview_${imageFields.children.length}`;
-        
-            // ตั้งค่า onchange event
-            imageField.onchange = function(event) {
-                previewImage(event, previewId); // ส่ง previewId ไปที่ฟังก์ชัน previewImage
-            };
-            // สร้าง div สำหรับแสดงตัวอย่างภาพ
-            const previewDiv = document.createElement("div");
-            previewDiv.id = previewId;  // ตั้งค่า ID ของ div ให้ตรงกับ previewId
-            imageFields.appendChild(imageField);
-            imageFields.appendChild(previewDiv);
-        }
-        
         // ฟังก์ชันแสดงตัวอย่างภาพที่อัปโหลด
         function previewImage(event, previewId) {
             const previewContainer = document.getElementById(previewId); // หารูปภาพที่จะแสดง
             const file = event.target.files[0]; // รับไฟล์ที่ผู้ใช้เลือก
-    
+
             if (file) {
                 const reader = new FileReader(); // ใช้ FileReader เพื่ออ่านไฟล์
                 reader.onload = function(e) {
@@ -148,6 +188,6 @@
                 previewContainer.innerHTML = `<span class="text-gray-400">รูปภาพ</span>`;
             }
         }
-        
+
     </script>
 {% endblock %}

@@ -1,3 +1,5 @@
+import os
+
 from django.db.models import Min, Max
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
@@ -157,11 +159,21 @@ def product_delete(request, product_id):
 
     if request.method == 'POST':
 
+        # ลบรูปภาพหลักของสินค้า (cover_image)
+        if product.cover_image:  # ตรวจสอบว่ามีรูปภาพหลักหรือไม่
+            cover_image_path = product.cover_image.path  # พาธของไฟล์ภาพ
+            if os.path.exists(cover_image_path):  # ตรวจสอบว่าไฟล์มีอยู่จริง
+                os.remove(cover_image_path)  # ลบไฟล์ภาพหลัก
+
         # ลบตัวเลือกสินค้าที่เกี่ยวข้อง
         ProductOption.objects.filter(product=product).delete()
 
-        # ลบรูปภาพที่เกี่ยวข้อง
-        ProductImage.objects.filter(product=product).delete()
+        # ลบรูปภาพที่เกี่ยวข้องจาก ProductImage
+        product_images = ProductImage.objects.filter(product=product)
+        for image in product_images:
+            image_path = image.image.path  # พาธของไฟล์ภาพ
+            if os.path.exists(image_path):  # ตรวจสอบว่าไฟล์มีอยู่จริง
+                os.remove(image_path)  # ลบไฟล์ภาพ
 
         # ลบสินค้า
         product.delete()
