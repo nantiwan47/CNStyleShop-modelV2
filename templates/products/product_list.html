@@ -2,159 +2,166 @@
 {% load static %}
 
 {% block content %}
-<div class="">
-    <div class="flex justify-between items-center">
+<div class="px-8 mb-8 min-h-screen">
+    <div class="flex justify-between items-center mb-6">
         <!-- ช่องค้นหาสินค้า -->
-        <form method="GET" action="{% url 'product_list' %}">
-            <input type="search" name="search" placeholder="ค้นหาชื่อสินค้า" value="{{ query }}" class="px-4 py-2 border rounded-md" />
-            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded">ค้นหา</button>
-        </form>        
+        <form method="GET" action="{% url 'product_list' %}" class="flex gap-2 w-full max-w-lg">
+            <!-- ช่องค้นหา -->
+            <input type="search" 
+                   name="search" 
+                   placeholder="ค้นหาชื่อสินค้า" 
+                   value="{{ query }}" class="px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-400 focus:outline-none w-full" 
+            />
+            <!-- ปุ่มค้นหา -->
+            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600 transition">
+                ค้นหา
+            </button>
+        </form>
         
-        <a href="{% url 'product_create' %}" class="bg-green-500 text-white py-2 px-4 rounded">เพิ่มสินค้า</a>
+        <!-- ปุ่มเพิ่มสินค้า -->
+        <a href="{% url 'product_create' %}" 
+           class="flex items-center gap-2 bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            เพิ่มสินค้า
+        </a>
     </div>
     
-    <table class="bg-white rounded-md shadow-lg">
-        <thead>
-            <tr class="bg-gray-200">
-                <th class="px-4 py-2 text-left">รหัสสินค้า</th>
-                <th class="px-4 py-2 text-left">ชื่อสินค้า</th>
-                <th class="px-4 py-2 text-left">ประเภท</th>
-                <th class="px-4 py-2 text-left">ราคา</th>
-                <th class="px-4 py-2 text-center">จัดการ</th>
-            </tr>
-        </thead>
-            <tbody>
+    <!-- ตารางแสดงสินค้า -->
+    <div class="overflow-x-auto rounded-lg shadow-lg">
+        <table class="min-w-full bg-white rounded-md text-left">
+            <thead>
+                <tr class="bg-gray-300 text-gray-700">
+                    <th class="px-6 py-3">รหัสสินค้า</th> 
+                    <th class="px-6 py-3">ชื่อสินค้า</th>
+                    <th class="px-6 py-3">ประเภท</th>
+                    <th class="px-6 py-3">ราคา</th>
+                    <th class="px-6 py-3 text-center">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
                 {% for product in page_obj %}
-                <tr>
-                    <td class="px-4 py-2">{{ product.id }}</td>
-                    <td class="px-4 py-2">{{ product.name }}</td>
-                    <td class="px-4 py-2">{{ product.category }}</td>
+                <tr class="hover:bg-gray-100 transition">
+                    <td class="px-6 py-3">{{ product.id }}</td>
+                    <td class="px-6 py-3">{{ product.name }}</td>
+                    <td class="px-6 py-3">{{ product.category }}</td>
                     
-                    <!-- ตรวจสอบราคาของทุกตัวเลือกสินค้า -->
+                    <!-- ตรวจสอบราคาของสินค้า -->
                     {% if product.min_price == product.max_price %}
-                        <td class="px-4 py-2">{{ product.min_price }}</td>
+                        <td class="px-6 py-3">{{ product.min_price }}</td>
                     {% else %}
-                        <td class="px-4 py-2">{{ product.min_price }} - {{ product.max_price }}</td>
+                        <td class="px-6 py-3">{{ product.min_price }} - {{ product.max_price }}</td>
                     {% endif %}
                     
-                    <td class="px-4 py-2">
-                        <a href="{% url 'product_edit' product.id %}" class="bg-blue-500 text-white py-1 px-3 rounded">Edit</a>
-                        <button class="delete-btn bg-red-500 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-red-600 transition duration-200 ml-4" data-id="{{ product.id }}">
+                    <td class="px-8 py-3 text-center flex justify-between">
+                        <a href="{% url 'product_edit' product.id %}" 
+                           class="bg-gray-100 text-blue-500 py-1 px-3 rounded-md shadow hover:bg-gray-200 transition">
+                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                              <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                              <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                            </svg>
+                        </a>
+                        <button class="delete-btn bg-red-500 text-white py-1 px-3 rounded-md shadow hover:bg-red-600 transition" 
+                                data-id="{{ product.id }}">
                                 ลบ
                         </button>
                     </td>
                 </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" class="px-4 py-2 text-center">ไม่พบผลลัพธ์ที่ตรงกับคำค้นหาของคุณ</td>
-            </tr>
-            {% endfor %}
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-3 text-center text-gray-500">
+                        ไม่พบผลลัพธ์ที่ตรงกับคำค้นหาของคุณ
+                    </td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
-
-        <div class="mt-4 flex justify-between">
-            <span>Showing 1 to 10 of {{ total_products }} results</span>
-        <div>
-                
-            
-        <div class="mt-6 flex justify-center items-center space-x-2">
-    <!-- First -->
-    {% if page_obj.has_previous %}
-        <a href="?search={{ query }}&page=1" 
-           class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-            « First
-        </a>
-    {% else %}
-        <span class="px-3 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed">
-            « First
-        </span>
-    {% endif %}
-
-    <!-- Previous -->
-    {% if page_obj.has_previous %}
-        <a href="?search={{ query }}&page={{ page_obj.previous_page_number }}" 
-           class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-            ‹ Prev
-        </a>
-    {% else %}
-        <span class="px-3 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed">
-            ‹ Prev
-        </span>
-    {% endif %}
-
-    <!-- Page Numbers -->
-    {% for num in page_obj.paginator.page_range %}
-        {% if num == page_obj.number %}
-            <span class="px-3 py-2 bg-blue-500 text-white font-bold rounded">
-                {{ num }}
-            </span>
-        {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-            <a href="?search={{ query }}&page={{ num }}" 
-               class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-                {{ num }}
-            </a>
-        {% endif %}
-    {% endfor %}
-
-    <!-- Next -->
-    {% if page_obj.has_next %}
-        <a href="?search={{ query }}&page={{ page_obj.next_page_number }}" 
-           class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-            Next ›
-        </a>
-    {% else %}
-        <span class="px-3 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed">
-            Next ›
-        </span>
-    {% endif %}
-
-    <!-- Last -->
-    {% if page_obj.has_next %}
-        <a href="?search={{ query }}&page={{ page_obj.paginator.num_pages }}" 
-           class="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300">
-            Last »
-        </a>
-    {% else %}
-        <span class="px-3 py-2 bg-gray-300 text-gray-500 rounded cursor-not-allowed">
-            Last »
-        </span>
-    {% endif %}
-</div>
     </div>
-           
+
+    <!-- Pagination -->
+    <div class="pt-8 flex justify-between items-center text-sm">
+        <span class="text-gray-600">Showing 1 to 10 of {{ total_products }} results</span>
+        
+        <div class="flex items-center space-x-1">
+            <!-- First & Previous -->
+            {% if page_obj.has_previous %}
+                <a href="?search={{ query }}&page=1" 
+                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
+                    First
+                </a>
+                <a href="?search={{ query }}&page={{ page_obj.previous_page_number }}" 
+                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
+                    Prev
+                </a>
+            {% else %}
+                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">First</span>
+                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">Prev</span>
+            {% endif %}
+            
+            <!-- Page Numbers -->
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span class="px-2 py-1 w-6 bg-gray-700 text-white font-bold rounded text-xs">{{ num }}</span>
+                {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                    <a href="?search={{ query }}&page={{ num }}" 
+                       class="px-2 py-1 w-6 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-700 hover:text-white text-xs">
+                        {{ num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+            
+            <!-- Next & Last -->
+            {% if page_obj.has_next %}
+                <a href="?search={{ query }}&page={{ page_obj.next_page_number }}" 
+                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
+                    Next
+                </a>
+                <a href="?search={{ query }}&page={{ page_obj.paginator.num_pages }}" 
+                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
+                    Last
+                </a>
+            {% else %}
+                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">Next</span>
+                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">Last</span>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
 <script>
     // จัดการเหตุการณ์การลบ
     document.querySelectorAll('.delete-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const productID = this.getAttribute('data-id');
-            Swal.fire({
-                title: 'ยืนยันการลบ?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#f44336',
-                cancelButtonColor: '#B0BEC5',
-                confirmButtonText: 'ลบ',
-                cancelButtonText: 'ยกเลิก',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(`/admin/product/delete/${productID}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    }).then(response => {
-                        if (response.ok) {
-                            Swal.fire('ลบเรียบร้อย!', '', 'success').then(() => {
-                                window.location.reload(); // รีเฟรชหน้าเพื่อดูการเปลี่ยนแปลง
-                            });
-                        } else {
-                            Swal.fire('เกิดข้อผิดพลาด!', '', 'error');
-                        }
-                    });
-                }
+            button.addEventListener('click', function() {
+                const productID = this.getAttribute('data-id');
+                Swal.fire({
+                    title: 'ยืนยันการลบ?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f44336',
+                    cancelButtonColor: '#B0BEC5',
+                    confirmButtonText: 'ลบ',
+                    cancelButtonText: 'ยกเลิก',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch(`/admin/product/delete/${productID}/`, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': '{{ csrf_token }}'
+                            }
+                        }).then(response => {
+                            if (response.ok) {
+                                Swal.fire('ลบเรียบร้อย!', '', 'success').then(() => {
+                                    window.location.reload(); // รีเฟรชหน้าเพื่อดูการเปลี่ยนแปลง
+                                });
+                            } else {
+                                Swal.fire('เกิดข้อผิดพลาด!', '', 'error');
+                            }
+                        });
+                    }
+                });
             });
         });
-    });
-            </script>
- 
+</script>
 {% endblock %}

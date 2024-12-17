@@ -18,7 +18,7 @@ def product_list(request):
         max_price=Max('options__price'),
     ).filter(name__icontains=query)
 
-    products = products.order_by('updated_at')
+    products = products.order_by('id')
 
     # แบ่งเพจ - 10 รายการต่อหน้า
     paginator = Paginator(products, 10)
@@ -31,7 +31,8 @@ def product_list(request):
     return render(request, 'products/product_list.html', {
         'page_obj': page_obj,
         'total_products': total_products,
-        'query': query})
+        'query': query
+    })
 
 def product_create(request):
     if request.method == 'POST':
@@ -54,6 +55,7 @@ def product_create(request):
         sizes = request.POST.getlist('size')
         prices = request.POST.getlist('price')
 
+        # บันทึกตัวเลือกสินค้า
         for color, size, price in zip(colors, sizes, prices):
             if color and size and price:
                 ProductOption.objects.create(
@@ -63,8 +65,10 @@ def product_create(request):
                     price=price
                 )
 
-        # บันทึกรูปภาพเพิ่มเติม
+        # ดึงข้อมูลรูปภาพเพิ่มเติม
         image_files = request.FILES.getlist('images')
+
+        # บันทึกรูปภาพเพิ่มเติม
         for image in image_files:
             ProductImage.objects.create(
                 product=product,
