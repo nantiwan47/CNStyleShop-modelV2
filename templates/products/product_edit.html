@@ -1,164 +1,227 @@
 {% extends 'base_admin.html' %}
 
 {% block content %}
-    <h1>แก้ไขสินค้า</h1>
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
+<form method="POST" enctype="multipart/form-data" class="px-24 space-y-4 mb-6">
+    {% csrf_token %}
+    
+    <!-- ข้อมูลทั่วไป -->
+    <div class="bg-white p-10 rounded-xl shadow-sm">
+        <h1 class="text-xl font-semibold mb-6 text-gray-700">ข้อมูลทั่วไป</h1>
+        <div class="space-y-6 px-24">
+            <div>
+                <label for="name" class="block text-gray-600 font-medium mb-2">ชื่อสินค้า:</label>
+                <input type="text" name="name" id="name" 
+                       class="w-full p-2 border border-gray-400 rounded-lg" 
+                       value="{{ product.name }}" 
+                       required>
+            </div>
 
-        <h2>ข้อมูลสินค้า</h2>
-        <label for="name">ชื่อสินค้า:</label>
-        <input type="text" name="name" id="name" value="{{ product.name }}" required><br><br>
+            <div>
+                <label for="description" class="block text-gray-600 font-medium mb-2">รายละเอียด:</label>
+                <textarea name="description" id="description" rows="12" 
+                          class="w-full p-2 border border-gray-400 rounded-lg" 
+                          required>{{ product.description }}</textarea>
+            </div>
 
-        <label for="description">รายละเอียด:</label>
-        <textarea name="description" id="description" rows="4" required>{{ product.description }}</textarea><br><br>
+            <div>
+                <label for="category" class="block text-gray-600 font-medium mb-2">ประเภทสินค้า:</label>
+                <select name="category" id="category" 
+                        class="w-full p-2 border border-gray-400 rounded-lg" 
+                        required>
+                    {% for key, value in product.CATEGORY_CHOICES %}
+                        <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
 
-        <label for="category">ประเภทสินค้า:</label>
-        <select name="category" id="category" required>
-            <option value="" disabled>-- เลือกประเภทสินค้า --</option>
-            {% for key, value in product.CATEGORY_CHOICES %}
-                <option value="{{ key }}" {% if product.category == key %}selected{% endif %}>{{ value }}</option>
-            {% endfor %}
-        </select><br><br>
-
-        <label for="cover_image">รูปภาพปกสินค้า:</label>
-        <input type="file" name="cover_image" id="cover_image" onchange="previewImage(event, 'cover_image_preview')">
-        <div id="cover_image_preview">
-            <img src="{{ product.cover_image.url }}" alt="Preview" style="max-width: 200px; margin-top: 10px;">
-        </div><br><br>
-
-        <h2>ตัวเลือกสินค้า</h2>
-        <div id="options-container">
-            {% for option in options %}
+    <!-- ข้อมูลการขาย -->
+    <div class="bg-white p-10 rounded-xl shadow-sm">
+        <h1 class="text-xl font-semibold mb-6 text-gray-700">ข้อมูลการขาย</h1>
+        <div class="space-y-4 px-24">
+            <div id="options-container">
+                {% for option in options %}
                 <div class="option">
-                    <label for="color">สี:</label>
-                    <input type="text" name="color" value="{{ option.color }}" required>
-                    <label for="size">ขนาด:</label>
-                    <input type="text" name="size" value="{{ option.size }}" required>
-                    <label for="price">ราคา:</label>
-                    <input type="number" name="price" value="{{ option.price }}" required>
-                    <button class="remove-btn" onclick="removeOption(this)">ลบ</button>
+                    <div class="flex items-end justify-between mt-4 gap-4">
+                        <div>
+                            <label for="color" class="block text-gray-600 font-medium mb-2">สี</label>
+                            <input type="text" name="color" id="color" 
+                                   class="w-full p-2 border border-gray-400 rounded-lg" 
+                                   value="{{ option.color }}" 
+                                   required>
+                        </div>
+                        <div>
+                            <label for="size" class="block text-gray-600 font-medium mb-2">ขนาด</label>
+                            <input type="text" name="size" id="size" 
+                                   class="w-full p-2 border border-gray-400 rounded-lg" 
+                                   value="{{ option.size }}" 
+                                   required>
+                        </div>
+                        <div>
+                            <label for="price" class="block text-gray-600 font-medium mb-2">ราคา</label>
+                            <input type="number" name="price" id="price" 
+                                   class="w-full p-2 border border-gray-400 rounded-lg" 
+                                   value="{{ option.price }}" 
+                                   required>
+                        </div>
+                        <div class="self-end">
+                        <button type="button" onclick="this.closest('.option').remove()"    
+                            class="bg-red-500 hover:bg-red-600 text-white font-medium px-2 py-1 text-xs rounded-lg">
+                                 ลบ     
+                        </button>
+                    </div>                    
+                    </div>
                 </div>
-            {% endfor %}
-        </div>
-        <button type="button" onclick="addOption()">เพิ่มตัวเลือกสินค้า</button><br><br>
+                {% endfor %}
+            </div>
 
-        <h2>เพิ่มรูปภาพเพิ่มเติม</h2>
-        <div id="imageFields">
-            {% for image in images %}
-                <div class="upload-container" data-id="{{ image.id }}">
-                    <img src="{{ image.image.url }}" alt="รูปภาพเพิ่มเติม" style="max-width: 200px; margin-top: 10px;">
-                    <button type="button" class="remove-image-btn" onclick="markImageForDeletion(this)">ลบ</button>
-                    <input type="hidden" name="keep_images" value="{{ image.id }}">
+            <div>
+                <button type="button" onclick="addOption()" 
+                        class="flex items-center justify-center w-full text-blue-600 border border-blue-500 rounded-lg py-2 hover:bg-blue-50">
+                    <svg class="w-5 h-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6"></path>
+                    </svg>
+                    <span>เพิ่มตัวเลือกสินค้า</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ข้อมูลรูปภาพ -->
+    <div class="bg-white p-10 rounded-xl shadow-sm">
+        <h1 class="text-xl font-semibold mb-6 text-gray-700">ข้อมูลรูปภาพ</h1>
+        <div class="space-y-6 px-24">
+            <div class="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                <!-- แสดงรูปภาพปก -->
+                <div id="cover_image_preview" 
+                     class="w-60 h-60 border-2 border-dashed border-gray-400 flex items-center justify-center rounded-lg bg-gray-100 overflow-hidden">
+                    {% if product.cover_image %}
+                        <img src="{{ product.cover_image.url }}" alt="Current Cover Image" class="w-full h-full object-cover">
+                    {% else %}
+                        <span class="text-gray-500 text-sm">รูปภาพปกสินค้า</span>
+                    {% endif %}
                 </div>
-            {% endfor %}
+                <!-- ช่องอัปโหลด -->
+                <div>
+                    <label for="cover_image" class="block text-gray-600 font-medium mb-10">รูปภาพปกสินค้า</label>
+                    <input type="file" name="cover_image" id="cover_image" 
+                           accept=".jpg, .jpeg, .png" 
+                           onchange="previewImage(event, 'cover_image_preview')"
+                           class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+                    />                    
+                    <p class="text-xs text-gray-500 mt-3">ไฟล์ที่รองรับ: .jpg, .jpeg, .png</p>
+                </div>
+            </div>
+        
+            <div>
+                <h2 class="text-md font-semibold mb-2 text-gray-600">เพิ่มรูปภาพเพิ่มเติม</h2>
+                <span class="block text-sm text-gray-500 mb-4">สามารถเพิ่มรูปภาพได้ไม่เกิน 4 รูป</span>
+                <div id="image-upload-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {% for i in images %}
+                        <div class="flex flex-col items-center">
+                            <!-- พื้นที่แสดงรูปภาพ -->
+                            <div id="images_preview_{{ forloop.counter0 }}"
+                                 class="w-40 h-40 mb-3 flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-100 overflow-hidden relative">
+                                <!-- แสดงภาพเดิมหรือพื้นที่ว่าง -->
+                                {% if i %}
+                                    <img src="{{ i.image.url }}" alt="รูปภาพ" class="w-full h-full object-cover" />
+                                    <!-- ปุ่มลบ -->
+                                    <button type="button" 
+                                            hx-delete="{% url 'delete_image' i.id %}"
+                                            hx-confirm="คุณต้องการลบภาพนี้หรือไม่?"
+                                            hx-target="#images_preview_{{ forloop.counter0 }}"
+                                            hx-swap="innerHTML" 
+                                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                                            class="absolute top-2 right-2 w-8 h-8 bg-red-500 border-2 border-red-500 rounded-full flex items-center justify-center p-1 shadow-md">
+                                        <span class="font-bold text-lg text-white">X</span>
+                                    </button>
+                                {% else %}
+                                    <span class="text-gray-400">รูปภาพ</span>
+                                {% endif %}
+                            </div>
+                            <!-- ช่องอัปโหลดไฟล์ -->
+                            <input type="file"
+                                   name="new_images"
+                                   accept=".jpg, .jpeg, .png"
+                                   onchange="previewImage(event, 'images_preview_{{ forloop.counter0 }}')"
+                                   class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
-       <div id="errorMessage" style="display:none; color: red;">คุณสามารถอัปโหลดรูปภาพได้ไม่เกิน 4 รูป</div>
+    </div>
 
-        <button type="button" id="addImageField">เพิ่มรูป</button>
-
-        <button type="submit">บันทึก</button>
-    </form>
+    <!-- ปุ่มบันทึกสินค้า -->
+    <div class="flex justify-end gap-4 mb-10">
+        <!-- ปุ่มยกเลิก -->
+        <a href="{% url 'product_list' %}" 
+           class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium py-2 px-6 rounded-lg focus:ring-4 focus:ring-gray-200">
+            ยกเลิก
+        </a>
+        
+        <!-- ปุ่มบันทึก -->
+        <button type="submit" 
+                class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg focus:ring-4 focus:ring-blue-300">
+            บันทึก
+        </button>
+    </div>
+</form>
 
     <script>
-        //  ฟังก์ชันเพิ่มตัวเลือกสินค้า
-
+        // ฟังก์ชันเพิ่มตัวเลือกสินค้าใหม่
         function addOption() {
             const optionsContainer = document.getElementById("options-container");
-
+            
             // สร้าง div ใหม่สำหรับตัวเลือก
             const optionDiv = document.createElement("div");
             optionDiv.classList.add("option");
-
+             
             // สร้างช่องกรอกข้อมูลใหม่
             optionDiv.innerHTML = `
-                <label for="color">สี:</label>
-                <input type="text" name="color" required>
-                <label for="size">ขนาด:</label>
-                <input type="text" name="size" required>
-                <label for="price">ราคา:</label>
-                <input type="number" name="price" required>
-                <button class="remove-btn" onclick="removeOption(this)">ลบ</button>
+                <div class="flex items-end justify-between mt-4 gap-4">
+                    <div>
+                        <label class="block text-gray-600 font-medium mb-2">สี</label>
+                        <input type="text" name="color" id="color" class="w-full p-2 border border-gray-400 rounded-lg" required>
+                    </div>                   
+                    <div>                   
+                        <label for="size" class="block text-gray-600 font-medium mb-2">ขนาด</label>    
+                        <input type="text" name="size" id="size" class="w-full p-2 border border-gray-400 rounded-lg" required>
+                    </div>            
+                    <div>
+                        <label for="price" class="block text-gray-600 font-medium mb-2">ราคา</label>          
+                        <input type="number" name="price" id="price" class="w-full p-2 border border-gray-400 rounded-lg" required>        
+                    </div>                   
+                    <div class="self-end">
+                        <button type="button" onclick="this.closest('.option').remove()"    
+                            class="bg-red-500 hover:bg-red-600 text-white font-medium px-2 py-1 text-xs rounded-lg">
+                                 ลบ     
+                        </button>
+                    </div>               
+                </div>      
             `;
             
-            // เพิ่มตัวเลือกใหม่เข้าไปใน container
+             // เพิ่มตัวเลือกใหม่เข้าไปใน container
             optionsContainer.appendChild(optionDiv);
         }
+       
+        // ฟังก์ชันแสดงตัวอย่างภาพที่อัปโหลด
+        function previewImage(event, previewId) {
+            const previewContainer = document.getElementById(previewId); // หารูปภาพที่จะแสดง
+            const file = event.target.files[0]; // รับไฟล์ที่ผู้ใช้เลือก
 
-        // ฟังก์ชันสำหรับลบตัวเลือกสินค้า
-        function removeOption(button) {
-            const optionDiv = button.parentElement;  // หา div ของตัวเลือก
-            optionDiv.remove();  // ลบ div ที่เก็บช่องกรอกข้อมูล
+            if (file) {
+                const reader = new FileReader(); // ใช้ FileReader เพื่ออ่านไฟล์
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover" />`;
+                }
+                reader.readAsDataURL(file); // อ่านไฟล์เป็น Data URL
+            } else {
+                previewContainer.innerHTML = `<span class="text-gray-400">รูปภาพ</span>`;
+            }
         }
-
-       // ฟังก์ชันแสดงตัวอย่างภาพที่อัปโหลด
-function previewImage(event, previewClass) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = function() {
-        // ใช้ querySelector เพื่อหาตัวอย่างภาพที่ต้องการ
-        const previewContainers = document.querySelectorAll(`.${previewClass}`);
-
-        // ตรวจสอบว่าเราพบ previewContainer ที่ต้องการหรือไม่
-        if (previewContainers.length > 0) {
-            const previewContainer = previewContainers[previewContainers.length - 1]; // ใช้ตัวสุดท้ายที่ถูกสร้าง
-            previewContainer.innerHTML = `<img src="${reader.result}" alt="Preview" style="max-width: 200px; margin-top: 10px;">`;
-        }
-    };
-    reader.readAsDataURL(file);
-}
-
-// เพิ่มช่องอัปโหลดรูปภาพใหม่
-let imageCounter = 1;
-const maxFields = 4;
-const addImageFieldButton = document.getElementById("addImageField");
-const imageFieldsContainer = document.getElementById("imageFields");
-const errorMessage = document.getElementById("errorMessage");
-
-addImageFieldButton.addEventListener("click", () => {
-    const currentFields = document.querySelectorAll('.upload-container').length;
-
-    if (currentFields >= maxFields) {
-        // แสดงข้อความแจ้งเตือนถ้าเกิน 4 รูป
-        errorMessage.style.display = "block";
-        return;
-    }
-
-    // ซ่อนข้อความแจ้งเตือน
-    errorMessage.style.display = "none";
-
-    // สร้างช่องอัปโหลดใหม่
-    const uploadContainer = document.createElement("div");
-    uploadContainer.classList.add("upload-container");
-
-    const inputField = document.createElement("input");
-    inputField.type = "file";
-    inputField.name = "new_images";
-    inputField.accept = "image/*";
-    inputField.setAttribute("onchange", `previewImage(event, 'additional_image_preview_${imageCounter}')`);
-
-    // สร้างตัวอย่างภาพ
-    const previewContainer = document.createElement("div");
-    previewContainer.classList.add('additional_image_preview');  // ใช้ class แทน id
-
-    // ปุ่มลบช่อง
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.textContent = "ลบ";
-    removeButton.addEventListener("click", () => {
-        uploadContainer.remove();
-        errorMessage.style.display = "none";
-    });
-
-    uploadContainer.appendChild(inputField);
-    uploadContainer.appendChild(previewContainer);
-    uploadContainer.appendChild(removeButton);
-    imageFieldsContainer.appendChild(uploadContainer);
-
-    imageCounter++;
-});
-
-
-        
+       
     </script>
 
 {% endblock %}

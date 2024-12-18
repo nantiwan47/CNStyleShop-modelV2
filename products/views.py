@@ -1,18 +1,18 @@
 import os
-
 from django.db.models import Min, Max
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from .models import Product, ProductOption, ProductImage
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+
 
 def dashboard(request):
     return render(request, 'products/dashboard.html')
 
 def product_list(request):
     # รับค่าคำค้นหาจาก URL
-    query = request.GET.get('search', '')  # กรณีที่ไม่มีคำค้นหาจะเป็นค่าว่าง
+    query = request.GET.get('search', '').strip()  # กรณีที่ไม่มีคำค้นหาจะเป็นค่าว่าง และตัดช่องว่างหัวท้ายออก
 
     # ดึงข้อมูลสินค้าทั้งหมดพร้อมราคาต่ำสุดและสูงสุด และกรองตามคำค้นหา
     products = Product.objects.annotate(
@@ -20,7 +20,7 @@ def product_list(request):
         max_price=Max('options__price'),
     ).filter(name__icontains=query)
 
-    products = products.order_by('id')
+    products = products.order_by('-id')
 
     # แบ่งเพจ - 10 รายการต่อหน้า
     paginator = Paginator(products, 10)
@@ -28,7 +28,7 @@ def product_list(request):
     page_obj = paginator.get_page(page_number)  # สร้าง object ของหน้าที่กำลังดู
 
     # นับจำนวนสินค้าทั้งหมด
-    total_products = Product.objects.count()
+    total_products = products.count()
 
     return render(request, 'products/product_list.html', {
         'page_obj': page_obj,
@@ -99,6 +99,7 @@ def product_edit(request, product_id):
                 product.name = name
                 product.description = description
                 product.category = category
+
                 if cover_image:
                     product.cover_image = cover_image  # อัปเดตรูปภาพหากมีการอัปโหลดใหม่
                 product.save()
@@ -120,16 +121,14 @@ def product_edit(request, product_id):
                             price=price
                         )
 
-                # จัดการรูปภาพเพิ่มเติม
-                delete_images = request.POST.getlist('delete_images')
-                if delete_images:
-                    ProductImage.objects.filter(id__in=delete_images, product=product).delete()
-
                 # เพิ่มรูปภาพใหม่
                 new_images = request.FILES.getlist('new_images')
                 if new_images:
                     for image in new_images:
-                        ProductImage.objects.create(product=product, image=image)
+                        ProductImage.objects.create(
+                            product=product,
+                            image=image
+                        )
 
         except Exception as e:
             # หากเกิดข้อผิดพลาด ให้แสดงข้อความแจ้งเตือน
@@ -140,11 +139,14 @@ def product_edit(request, product_id):
                 'error': str(e),
             })
 
-        return redirect('product_list')  # เปลี่ยน URL นี้ให้เหมาะสม
+        return redirect('product_list')
 
     # ดึงข้อมูลตัวเลือกสินค้าและรูปภาพเพิ่มเติมสำหรับการแสดงฟอร์ม
     options = product.options.all()
-    images = product.images.all()
+    images = list(product.images.all())  # แปลง QuerySet เป็น List
+
+    while len(images) < 4:
+        images.append(None)
 
     context = {
         'product': product,
@@ -152,6 +154,29 @@ def product_edit(request, product_id):
         'images': images,
     }
     return render(request, 'products/product_edit.html', context)
+
+def delete_image(request, image_id):
+    if request.method == 'DELETE':
+        # ตรวจสอบว่าเป็นคำขอจาก HTMX หรือไม่
+        if request.headers.get('HX-Request'):
+            # การลบภาพ
+            image = get_object_or_404(ProductImage, id=image_id)
+
+            image_file_path = image.image.path
+            image.delete()  # ลบจากฐานข้อมูล
+
+            # ลบไฟล์จากระบบไฟล์
+            try:
+                os.remove(image_file_path)
+            except:
+                pass  # ถ้าไม่สามารถลบไฟล์ได้ก็ไม่ต้องทำอะไร
+
+            # เมื่อคำขอมาจาก HTMX ส่ง HTML ใหม่ที่แทนที่ content ของ #images_preview
+            return HttpResponse('<span class="text-gray-400">รูปภาพ</span>')  # แสดงข้อความ placeholder
+
+        else:
+            # ถ้าไม่ใช่คำขอจาก HTMX ให้ส่งคำตอบอื่นๆ ตามปกติ
+            return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 def product_delete(request, product_id):
     # ดึงข้อมูลสินค้าที่ต้องการลบ
