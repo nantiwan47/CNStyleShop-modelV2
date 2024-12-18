@@ -5,11 +5,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db import transaction
 from .models import Product, ProductOption, ProductImage
 from django.http import JsonResponse, HttpResponse
+from django.contrib.auth.decorators import login_required
 
-
+@login_required(login_url='/account/admin-login')
 def dashboard(request):
     return render(request, 'products/dashboard.html')
 
+@login_required(login_url='/account/admin-login')
 def product_list(request):
     # รับค่าคำค้นหาจาก URL
     query = request.GET.get('search', '').strip()  # กรณีที่ไม่มีคำค้นหาจะเป็นค่าว่าง และตัดช่องว่างหัวท้ายออก
@@ -36,6 +38,7 @@ def product_list(request):
         'query': query
     })
 
+@login_required(login_url='/account/admin-login')
 def product_create(request):
     if request.method == 'POST':
         # ดึงข้อมูลสินค้า
@@ -81,6 +84,7 @@ def product_create(request):
 
     return render(request, 'products/product_create.html')
 
+@login_required(login_url='/account/admin-login')
 def product_edit(request, product_id):
     # ดึงข้อมูลสินค้าที่ต้องการแก้ไข
     product = get_object_or_404(Product, id=product_id)
@@ -178,6 +182,7 @@ def delete_image(request, image_id):
             # ถ้าไม่ใช่คำขอจาก HTMX ให้ส่งคำตอบอื่นๆ ตามปกติ
             return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
+@login_required(login_url='/account/admin-login')
 def product_delete(request, product_id):
     # ดึงข้อมูลสินค้าที่ต้องการลบ
     product = get_object_or_404(Product, id=product_id)
@@ -206,69 +211,4 @@ def product_delete(request, product_id):
         return JsonResponse({'status': 'success'}, status=200)
 
     return JsonResponse({'status': 'fail'}, status=400)
-
-
-
-# def create_product_view(request):
-#     if request.method == 'POST':
-#         # ข้อมูลสินค้า
-#         name = request.POST.get('name')
-#         description = request.POST.get('description')
-#         category = request.POST.get('category')
-#         cover_image = request.FILES.get('cover_image')
-#
-#         print(name, description, category, cover_image)
-#
-#         # บันทึก Product
-#         product = Product.objects.create(
-#             name=name,
-#             description=description,
-#             category=category,
-#             image=cover_image
-#         )
-#
-#         # ข้อมูลสีสินค้า
-#         colors = request.POST.getlist('colors[]')
-#         color_images = request.FILES.getlist('color_images[]')
-#         print(colors, color_images)
-#
-#         for color, color_image in zip(colors, color_images):
-#             product_color = ProductColor.objects.create(
-#                 product=product,
-#                 color=color,
-#                 image=color_image
-#             )
-#
-#         # ข้อมูลตัวเลือกสินค้า (ไซส์)
-#         size_colors = request.POST.getlist('size_colors[]')
-#         sizes = request.POST.getlist('sizes[]')
-#         prices = request.POST.getlist('prices[]')
-#
-#         print(size_colors, sizes, prices)
-#
-#         for size_color, size, price in zip(size_colors, sizes, prices):
-#             product_color = ProductColor.objects.filter(product=product, color=size_color).first()
-#             ProductOption.objects.create(
-#                 product=product,
-#                 color=product_color,
-#                 size=size,
-#                 price=price
-#             )
-#
-#         return JsonResponse({'message': 'Product created successfully!'})
-#
-#     return render(request, 'products/product_create.html')
-# def product_create(request):
-#     if request.method == 'POST':
-#         form = ProductForm(request.POST, request.FILES)
-#
-#         # บันทึก Product
-#         if form.is_valid():
-#             product = form.save()
-#             return redirect('product_list')
-#         else:
-#             messages.error(request, "มีข้อผิดพลาดในการบันทึกสินค้า")
-#     else:
-#         form = ProductForm()
-#     return render(request, 'products/product_create.html', {'form': form})
 
