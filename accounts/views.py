@@ -27,6 +27,8 @@ class UserLoginView(LoginView):
         messages.error(self.request, "กรุณาล็อกอินด้วยบัญชีผู้ใช้")
         return reverse_lazy('login')
 
+class UserLogoutView(LogoutView):
+    next_page = reverse_lazy('login')
 
 class AdminLoginView(LoginView):
     template_name = 'accounts/admin_login.html'

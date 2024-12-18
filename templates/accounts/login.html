@@ -19,14 +19,17 @@
 
         <div class="flex h-screen">
             <!-- ส่วนซ้าย: โลโก้ -->
+            
             <div class="w-1/2 hidden lg:flex items-center justify-center">
-                <img
-                    src="{% static 'images/logo/White_Logo.svg' %}"
-                    alt="CN Style Shop"
-                    class="mx-auto h-3/4 shadow-xl"
-                >
+                <a href="{% url 'home' %}" >
+                    <img
+                        src="{% static 'images/logo/White_Logo.svg' %}"
+                        alt="CN Style Shop"
+                        class="mx-auto h-3/4 shadow-xl"
+                    >
+                </a>
             </div>
-
+           
             <!-- ส่วนขวา: ฟอร์ม Login -->
             <div class="w-full lg:w-1/2 flex items-center justify-center">
                 <div class="p-8 rounded-2xl shadow-md w-[30rem] bg-white">
