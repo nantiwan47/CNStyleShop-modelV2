@@ -6,6 +6,7 @@ from django.db import transaction
 from .models import Product, ProductOption, ProductImage
 from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
 @login_required(login_url='/account/admin-login')
 def dashboard(request):
@@ -15,13 +16,21 @@ def dashboard(request):
 def product_list(request):
     # รับค่าคำค้นหาจาก URL
     query = request.GET.get('search', '').strip()  # กรณีที่ไม่มีคำค้นหาจะเป็นค่าว่าง และตัดช่องว่างหัวท้ายออก
+    category = request.GET.get('category', '')
 
-    # ดึงข้อมูลสินค้าทั้งหมดพร้อมราคาต่ำสุดและสูงสุด และกรองตามคำค้นหา
+    # ดึงข้อมูลสินค้าทั้งหมดพร้อมราคาต่ำสุดและสูงสุด
     products = Product.objects.annotate(
         min_price=Min('options__price'),
         max_price=Max('options__price'),
-    ).filter(name__icontains=query)
+    )
 
+    # กรองข้อมูลตามประเภทและคำค้นหา
+    if category:
+        products = products.filter(category=category)
+    if query:
+        products = products.filter(Q(name__icontains=query))
+
+    # จัดเรียงสินค้าตาม ID จากล่าสุดไปเก่าสุด
     products = products.order_by('-id')
 
     # แบ่งเพจ - 10 รายการต่อหน้า
@@ -29,13 +38,11 @@ def product_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)  # สร้าง object ของหน้าที่กำลังดู
 
-    # นับจำนวนสินค้าทั้งหมด
-    total_products = products.count()
-
     return render(request, 'products/product_list.html', {
-        'page_obj': page_obj,
-        'total_products': total_products,
-        'query': query
+        'page_obj': page_obj, # ส่งข้อมูลหน้าปัจจุบันไปที่ Template
+        'query': query,
+        'selected_category': category,
+        'category_choices': Product.CATEGORY_CHOICES,  # ส่ง Choices ของ ตาราง Product ไปยัง Template
     })
 
 @login_required(login_url='/account/admin-login')
@@ -56,29 +63,28 @@ def product_create(request):
         )
 
         # ดึงข้อมูลตัวเลือกสินค้า
-        colors = request.POST.getlist('color')
-        sizes = request.POST.getlist('size')
-        prices = request.POST.getlist('price')
+        colors = request.POST.getlist('color[]')
+        sizes = request.POST.getlist('size[]')
+        prices = request.POST.getlist('price[]')
 
         # บันทึกตัวเลือกสินค้า
         for color, size, price in zip(colors, sizes, prices):
-            if color and size and price:
-                ProductOption.objects.create(
-                    product=product,
-                    color=color,
-                    size=size,
-                    price=price
-                )
+            ProductOption.objects.create(
+                product=product,
+                color=color,
+                size=size,
+                price=price
+            )
 
         # ดึงข้อมูลรูปภาพเพิ่มเติม
-        image_files = request.FILES.getlist('images')
+        image_files = request.FILES.getlist('images[]')
 
         # บันทึกรูปภาพเพิ่มเติม
         for image in image_files:
             ProductImage.objects.create(
                 product=product,
                 image=image
-                )
+            )
 
         return redirect('product_list')
 
@@ -111,9 +117,9 @@ def product_edit(request, product_id):
                 # ลบตัวเลือกสินค้าเก่าก่อนแล้วเพิ่มใหม่
                 ProductOption.objects.filter(product=product).delete()
 
-                colors = request.POST.getlist('color')
-                sizes = request.POST.getlist('size')
-                prices = request.POST.getlist('price')
+                colors = request.POST.getlist('color[]')
+                sizes = request.POST.getlist('size[]')
+                prices = request.POST.getlist('price[]')
 
                 # ตรวจสอบความถูกต้องของข้อมูลตัวเลือก
                 for color, size, price in zip(colors, sizes, prices):
@@ -126,7 +132,7 @@ def product_edit(request, product_id):
                         )
 
                 # เพิ่มรูปภาพใหม่
-                new_images = request.FILES.getlist('new_images')
+                new_images = request.FILES.getlist('new_images[]')
                 if new_images:
                     for image in new_images:
                         ProductImage.objects.create(
@@ -163,7 +169,7 @@ def delete_image(request, image_id):
     if request.method == 'DELETE':
         # ตรวจสอบว่าเป็นคำขอจาก HTMX หรือไม่
         if request.headers.get('HX-Request'):
-            # การลบภาพ
+            # ลบภาพ
             image = get_object_or_404(ProductImage, id=image_id)
 
             image_file_path = image.image.path

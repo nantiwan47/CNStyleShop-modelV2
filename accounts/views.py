@@ -36,7 +36,8 @@ class AdminLoginView(LoginView):
     def get_success_url(self):
         # ตรวจสอบ role ของผู้ใช้
         if self.request.user.role == 'admin':
-            return reverse_lazy('dashboard')
+            # return reverse_lazy('dashboard')
+            return reverse_lazy('product_list')
 
         # เพิ่มข้อความแจ้งเตือน
         messages.error(self.request, "กรุณาล็อกอินด้วยบัญชีแอดมิน")

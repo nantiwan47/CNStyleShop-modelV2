@@ -2,20 +2,34 @@
 {% load static %}
 
 {% block content %}
-<div class="px-8 min-h-screen mb-6">
+<div class="px-8 min-h-screen pb-6">
     <div class="flex justify-between items-center mb-6">
         <!-- ช่องค้นหาสินค้า -->
         <form method="GET" action="{% url 'product_list' %}" class="flex gap-2 w-full max-w-lg">
+            <div>
+                <label for="category">ประเภทสินค้า:</label>
+                <select id="category" name="category">
+                    <option value="">-- ทุกประเภท --</option>
+                    {% for key, value in category_choices %}
+                        <option value="{{ key }}" {% if key == selected_category %}selected{% endif %}>
+                            {{ key }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
             <!-- ช่องค้นหา -->
-            <input type="search" 
-                   name="search" 
-                   placeholder="ค้นหาชื่อสินค้า" 
-                   value="{{ query }}" class="px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-400 focus:outline-none w-full" 
-            />
-            <!-- ปุ่มค้นหา -->
-            <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-md shadow hover:bg-blue-600 transition">
-                ค้นหา
-            </button>
+            <div>
+                <input type="search" 
+                       name="search" 
+                       placeholder="ค้นหาชื่อสินค้า" 
+                       value="{{ query }}" class="px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-400 focus:outline-none w-full" 
+                />
+                <!-- ปุ่มค้นหา -->
+                <button type="submit" class="bg-blue-500 text-center text-white py-2 px-4 rounded-md shadow hover:bg-blue-600 transition">
+                    ค้นหา
+                </button>
+            </div>
         </form>
         
         <!-- ปุ่มเพิ่มสินค้า -->
@@ -30,7 +44,7 @@
     
     <!-- ตารางแสดงสินค้า -->
     <div class="overflow-x-auto rounded-lg shadow-lg">
-        <table class="min-w-full bg-white rounded-md text-left">
+        <table class="min-w-full bg-white text-left">
             <thead>
                 <tr class="bg-gray-300 text-gray-700">
                     <th class="px-6 py-3">รหัสสินค้า</th> 
@@ -40,34 +54,35 @@
                     <th class="px-6 py-3 text-center">จัดการ</th>
                 </tr>
             </thead>
+        
             <tbody class="divide-y divide-gray-200">
                 {% for product in page_obj %}
-                <tr class="hover:bg-gray-100 transition">
-                    <td class="px-6 py-3">{{ product.id }}</td>
-                    <td class="px-6 py-3">{{ product.name }}</td>
-                    <td class="px-6 py-3">{{ product.category }}</td>
+                    <tr class="hover:bg-gray-100 transition">
+                        <td class="px-6 py-3">{{ product.id }}</td>
+                        <td class="px-6 py-3">{{ product.name }}</td>
+                        <td class="px-6 py-3">{{ product.category }}</td>
+                        
+                        <!-- ตรวจสอบราคาของสินค้า -->
+                        {% if product.min_price == product.max_price %}
+                            <td class="px-6 py-3">{{ product.min_price }}</td>
+                        {% else %}
+                            <td class="px-6 py-3">{{ product.min_price }} - {{ product.max_price }}</td>
+                        {% endif %}
                     
-                    <!-- ตรวจสอบราคาของสินค้า -->
-                    {% if product.min_price == product.max_price %}
-                        <td class="px-6 py-3">{{ product.min_price }}</td>
-                    {% else %}
-                        <td class="px-6 py-3">{{ product.min_price }} - {{ product.max_price }}</td>
-                    {% endif %}
-                
-                    <td class="px-8 py-3 text-center flex justify-between">
-                        <a href="{% url 'product_edit' product.id %}" 
-                           class="bg-gray-100 text-blue-500 py-1 px-3 rounded-md shadow hover:bg-gray-200 transition">
-                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-                              <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
-                              <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
-                            </svg>
-                        </a>
-                        <button class="delete-btn bg-red-500 text-white py-1 px-3 rounded-md shadow hover:bg-red-600 transition" 
-                                data-id="{{ product.id }}">
-                                ลบ
-                        </button>
-                    </td>
-                </tr>
+                        <td class="px-8 py-3 text-center flex justify-between">
+                            <a href="{% url 'product_edit' product.id %}" 
+                               class="bg-gray-100 text-blue-500 py-1 px-3 rounded-md shadow hover:bg-gray-200 transition">
+                               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                  <path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" />
+                                  <path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" />
+                                </svg>
+                            </a>
+                            <button class="delete-btn bg-red-500 text-white py-1 px-3 rounded-md shadow hover:bg-red-600 transition" 
+                                    data-id="{{ product.id }}">
+                                    ลบ
+                            </button>
+                        </td>
+                    </tr>
                 {% empty %}
                 <tr>
                     <td colspan="5" class="px-6 py-3 text-center text-gray-500">
@@ -81,7 +96,7 @@
 
     <!-- Pagination -->
     <div class="pt-8 flex justify-between items-center text-sm">
-        <span class="text-gray-600">Showing 1 to 10 of {{ total_products }} results</span>
+        <span class="text-gray-600">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results</span>
         
         <div class="flex items-center space-x-1">
             <!-- First & Previous -->
@@ -127,6 +142,62 @@
             {% endif %}
         </div>
     </div>
+
+{#    <div>#}
+{#        <nav aria-label="Page navigation">#}
+{#          <ul class="flex items-center -space-x-px h-8 text-sm">#}
+{#              #}
+{#            <li>#}
+{#              {% if page_obj.has_previous %}#}
+{#                <a href="?search={{ query }}&page={{ page_obj.previous_page_number }}" #}
+{#                   class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">#}
+{#                    <span class="sr-only">Previous</span>                #}
+{#                    <svg class="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
+{#                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>#}
+{#                    </svg>#}
+{#                </a>#}
+{#                {% if page_obj.number > 3 %}#}
+{#                    <a href="?search={{ query }}&page=1"  class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300">1</a>#}
+{#                    {% if page_obj.number > 4 %}#}
+{#                        <span class="text-gray-600">...</span>#}
+{#                    {% endif %}#}
+{#                {% endif %}#}
+{#              {% else %}#}
+{#                <span class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-300 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed">#}
+{#                  <span class="sr-only">Previous</span>                #}
+{#                  <svg class="w-2.5 h-2.5 rtl:rotate-180 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
+{#                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>#}
+{#                  </svg>#}
+{#                </span>#}
+{#              {% endif %}#}
+{#            </li>#}
+{#          #}
+{#            <li>#}
+{#              <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>#}
+{#            </li>#}
+{#          #}
+{#            <li>#}
+{#              {% if page_obj.has_next %}#}
+{#                <a href="?search={{ query }}&page={{ page_obj.next_page_number }}" #}
+{#                   class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">#}
+{#                    <span class="sr-only">Next</span>#}
+{#                    <svg class="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
+{#                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>#}
+{#                    </svg>#}
+{#                </a>#}
+{#              {% else %}#}
+{#                <span class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-300 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed">#}
+{#                    <span class="sr-only">Next</span>#}
+{#                      <svg class="w-2.5 h-2.5 rtl:rotate-180 text-gray-400"  aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
+{#                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>#}
+{#                      </svg>#}
+{#                </span>#}
+{#              {% endif %}#}
+{#            </li>#}
+{#          #}
+{#          </ul>#}
+{#        </nav>#}
+{#    </div>#}
 
 </div>
 
