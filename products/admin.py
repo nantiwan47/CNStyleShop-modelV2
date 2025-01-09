@@ -1,55 +1,41 @@
 from django.contrib import admin
 from .models import Product, ProductOption, ProductImage
-from django.utils.html import mark_safe
 
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 1  # จำนวนแถวที่เพิ่มขึ้นใหม่ได้ในฟอร์ม
-    fields = ['image', 'preview_image']
-    readonly_fields = ['preview_image']
-
-    def preview_image(self, obj):
-        if obj.image:
-            return mark_safe(f'<img src="{obj.image.url}" width="100" />')
-        return "No image"
+    extra = 4  # จำนวนฟิลด์เริ่มต้นเมื่อเพิ่มรูปใหม่
+    max_num = 4  # จำกัดจำนวนรูปภาพเพิ่มเติมได้ไม่เกิน 4 รูป
 
 
 class ProductOptionInline(admin.TabularInline):
     model = ProductOption
-    extra = 1  # จำนวนแถวที่เพิ่มขึ้นใหม่ได้ในฟอร์ม
-    fields = ['color', 'size', 'price']
+    extra = 1  # จำนวนฟิลด์เริ่มต้นเมื่อเพิ่มตัวเลือกสินค้าใหม่
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'cover_image_preview', 'created_at', 'updated_at']
-    search_fields = ['name', 'category']
-    list_filter = ['category']
-    # inlines = [ProductOptionInline, ProductImageInline]  # รวมตัวเลือกสินค้าและรูปภาพสินค้าในหน้าเดียวกัน
+    list_display = ('name', 'category', 'created_at', 'updated_at')
+    list_filter = ('category', 'created_at', 'updated_at')
+    search_fields = ('name', 'description', 'category')
+    inlines = [ProductImageInline, ProductOptionInline]
+    fieldsets = (
+        (None, {
+            'fields': ('name', 'description', 'category', 'cover_image'),
+        }),
 
-    def cover_image_preview(self, obj):
-        if obj.cover_image:
-            return mark_safe(f'<img src="{obj.cover_image.url}" width="100" />')
-        return "No image"
-
-    cover_image_preview.short_description = 'Cover Image Preview'
+    )
 
 
 @admin.register(ProductOption)
 class ProductOptionAdmin(admin.ModelAdmin):
-    list_display = ['product', 'color', 'size', 'price']
-    search_fields = ['product__name', 'color', 'size']
+    list_display = ('product', 'color', 'size', 'price')
+    list_filter = ('product', 'color', 'size')
+    search_fields = ('product__name', 'color', 'size')
 
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ['product', 'image', 'image_preview']
-    search_fields = ['product__name']
-
-    def image_preview(self, obj):
-        if obj.image:
-            return mark_safe(f'<img src="{obj.image.url}" width="100" />')
-        return "No image"
-
-    image_preview.short_description = 'Image Preview'
+    list_display = ('product', 'image')
+    list_filter = ('product',)
+    search_fields = ('product__name',)

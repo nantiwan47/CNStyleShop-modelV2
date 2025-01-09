@@ -25,17 +25,17 @@ def product_list(request):
     )
 
     # กรองข้อมูลตามประเภทและคำค้นหา
-    if category:
-        products = products.filter(category=category)
     if query:
-        products = products.filter(Q(name__icontains=query))
+        products = products.filter(Q(name__icontains=query))  # ค้นหาตามชื่อสินค้า
+    if category:
+        products = products.filter(category=category)  # กรองตามหมวดหมู่
 
     # จัดเรียงสินค้าตาม ID จากล่าสุดไปเก่าสุด
     products = products.order_by('-id')
 
     # แบ่งเพจ - 10 รายการต่อหน้า
     paginator = Paginator(products, 10)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page') # รับหมายเลขหน้าจาก URL
     page_obj = paginator.get_page(page_number)  # สร้าง object ของหน้าที่กำลังดู
 
     return render(request, 'products/product_list.html', {

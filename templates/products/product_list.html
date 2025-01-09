@@ -3,12 +3,13 @@
 
 {% block content %}
 <div class="px-8 min-h-screen pb-6">
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col sm:flex-row sm:justify-between items-center gap-4 mb-6">
         <!-- ช่องค้นหาสินค้า -->
-        <form method="GET" action="{% url 'product_list' %}" class="flex gap-2 w-full max-w-lg">
-            <div>
-                <label for="category">ประเภทสินค้า:</label>
-                <select id="category" name="category">
+        <form method="GET" action="{% url 'product_list' %}" class="flex flex-wrap sm:flex-nowrap gap-2 w-full max-w-xl">
+             <!-- Dropdown ประเภทสินค้า -->
+            <div class="flex-shrink-0">
+                <label for="category" class="sr-only">ประเภทสินค้า</label>
+                <select id="category" name="category" class=" border border-gray-300 bg-white px-4 py-2 pr-10 rounded-md text-gray-700 w-full">
                     <option value="">-- ทุกประเภท --</option>
                     {% for key, value in category_choices %}
                         <option value="{{ key }}" {% if key == selected_category %}selected{% endif %}>
@@ -19,17 +20,21 @@
             </div>
             
             <!-- ช่องค้นหา -->
-            <div>
+            <div class="flex-grow">
+                <label for="search" class="sr-only">ค้นหา</label>
                 <input type="search" 
                        name="search" 
+                       id="search"
                        placeholder="ค้นหาชื่อสินค้า" 
-                       value="{{ query }}" class="px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-400 focus:outline-none w-full" 
-                />
-                <!-- ปุ่มค้นหา -->
-                <button type="submit" class="bg-blue-500 text-center text-white py-2 px-4 rounded-md shadow hover:bg-blue-600 transition">
-                    ค้นหา
-                </button>
+                       value="{{ query }}" 
+                       class="px-4 py-2 border border-gray-300 rounded-md w-full"/>
             </div>
+        
+            <!-- ปุ่มค้นหา -->
+            <button type="submit" 
+                    class="bg-blue-500 text-white px-4 py-2 rounded-md shadow flex-shrink-0 hover:bg-blue-600 transition">
+                ค้นหา
+            </button>
         </form>
         
         <!-- ปุ่มเพิ่มสินค้า -->
@@ -49,8 +54,8 @@
                 <tr class="bg-gray-300 text-gray-700">
                     <th class="px-6 py-3">รหัสสินค้า</th> 
                     <th class="px-6 py-3">ชื่อสินค้า</th>
-                    <th class="px-6 py-3">ประเภท</th>
-                    <th class="px-6 py-3">ราคา</th>
+                    <th class="px-6 py-3">ประเภทสินค้า</th>
+                    <th class="px-6 py-3">ราคา (ต่ำ - สูง)</th>
                     <th class="px-6 py-3 text-center">จัดการ</th>
                 </tr>
             </thead>
@@ -98,106 +103,97 @@
     <div class="pt-8 flex justify-between items-center text-sm">
         <span class="text-gray-600">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} results</span>
         
-        <div class="flex items-center space-x-1">
-            <!-- First & Previous -->
+        <nav aria-label="Page navigation">
+        <ul class="flex items-center -space-x-px h-6 text-xs">
+            <!-- แสดงปุ่มไอคอนลูกศรสำหรับ "Previous เมื่อมีหน้าก่อนหน้า -->
             {% if page_obj.has_previous %}
-                <a href="?search={{ query }}&page=1" 
-                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
-                    First
-                </a>
-                <a href="?search={{ query }}&page={{ page_obj.previous_page_number }}" 
-                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
-                    Prev
-                </a>
-            {% else %}
-                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">First</span>
-                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">Prev</span>
+                <li>
+                    <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page={{ page_obj.previous_page_number }}" 
+                       class="flex items-center justify-center px-2 h-6 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-200 hover:text-gray-700">
+                        <span class="sr-only">Previous</span>
+                        <svg class="w-2 h-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>
+                        </svg>
+                    </a>
+                </li>
             {% endif %}
             
-            <!-- Page Numbers -->
-            {% for num in page_obj.paginator.page_range %}
-                {% if num == page_obj.number %}
-                    <span class="px-2 py-1 w-6 bg-gray-700 text-white font-bold rounded text-xs">{{ num }}</span>
-                {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
-                    <a href="?search={{ query }}&page={{ num }}" 
-                       class="px-2 py-1 w-6 bg-white text-gray-700 border border-gray-300 rounded hover:bg-gray-700 hover:text-white text-xs">
-                        {{ num }}
+            <!-- แสดงปุ่มหมายเลขหน้าแรกเมื่อมีหน้าปัจจุบันอยู่ห่างจากหน้าแรกมากกว่า 3 -->
+            {% if page_obj.number > 3 %}
+                <li>
+                    <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page=1" 
+                       class="flex items-center justify-center px-2 h-6 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-200 hover:text-gray-700">
+                        1
                     </a>
+                </li>
+                <!-- แสดงเครื่องหมาย "..." เมื่อหน้าห่างจากหน้าแรกเกิน 4 -->
+                {% if page_obj.number > 4 %}
+                    <li>
+                      <span class="flex items-center justify-center px-2 h-6 leading-tight text-gray-500 bg-white border border-gray-300">
+                          ...
+                      </span>
+                    </li>
+                {% endif %}
+            {% endif %}
+                
+            {% for num in page_obj.paginator.page_range %}
+                <!-- หน้าปัจจุบัน (เน้นด้วยสีดำ) -->
+                {% if page_obj.number == num %}
+                    <li>
+                        <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page={{ num }}" 
+                           class="z-10 flex items-center justify-center px-2 h-6 leading-tight text-white bg-gray-700 font-bold border border-gray-700">
+                            {{ num }}
+                        </a>
+                    </li>
+                <!-- หน้าหมายเลขที่อยู่ใกล้กับหน้าปัจจุบัน (ไม่เกิน 3 หน้าก่อนหรือหลัง) -->
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li>
+                        <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page={{ num }}" 
+                           class="flex items-center justify-center px-2 h-6 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-200 hover:text-gray-700">
+                            {{ num }}
+                        </a>
+                    </li>
                 {% endif %}
             {% endfor %}
-            
-            <!-- Next & Last -->
+                
+            <!-- แสดงปุ่มไอคอนลูกศรสำหรับ "Next" เมื่อมีหน้าถัดไป -->
             {% if page_obj.has_next %}
-                <a href="?search={{ query }}&page={{ page_obj.next_page_number }}" 
-                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
-                    Next
-                </a>
-                <a href="?search={{ query }}&page={{ page_obj.paginator.num_pages }}" 
-                   class="px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 text-xs">
-                    Last
-                </a>
-            {% else %}
-                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">Next</span>
-                <span class="px-2 py-1 bg-gray-300 text-gray-500 rounded text-xs">Last</span>
+                <!-- แสดงเครื่องหมาย "..." และหน้าสุดท้าย เมื่อหน้าปัจจุบันห่างจากหน้าสุดท้ายมากกว่า 3 -->
+                {% if page_obj.number < page_obj.paginator.num_pages|add:'-3' %}
+                    <li>
+                        <span class="flex items-center justify-center px-2 h-6 leading-tight text-gray-500 bg-white border border-gray-300">
+                            ...
+                        </span>
+                    </li>
+                    <li>
+                        <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page={{ page_obj.paginator.num_pages }}" 
+                           class="flex items-center justify-center px-2 h-6 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-200 hover:text-gray-700">
+                            {{ page_obj.paginator.num_pages }}
+                        </a>
+                    </li>
+                    
+                <!--แสดงปุ่มหน้าสุดท้ายเมื่อหน้าปัจจุบันห่างจากหน้าสุดท้ายไม่เกิน 2 หน้า -->
+                {% elif page_obj.number < page_obj.paginator.num_pages|add:'-2' %}
+                    <li>
+                        <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page={{ page_obj.paginator.num_pages }}" 
+                           class="flex items-center justify-center px-2 h-6 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-200 hover:text-gray-700">
+                            {{ page_obj.paginator.num_pages }}
+                        </a>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="?{% if query %}&search={{ query }}{% endif %}{% if selected_category %}&category={{ selected_category }}{% endif %}&page={{ page_obj.next_page_number }}" 
+                       class="flex items-center justify-center px-2 h-6 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-e-lg hover:bg-gray-200 hover:text-gray-700">
+                        <span class="sr-only">Next</span>
+                        <svg class="w-2 h-2 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
+                        </svg>
+                    </a>
+                </li>
             {% endif %}
-        </div>
+        </ul>
+    </nav>
     </div>
-
-{#    <div>#}
-{#        <nav aria-label="Page navigation">#}
-{#          <ul class="flex items-center -space-x-px h-8 text-sm">#}
-{#              #}
-{#            <li>#}
-{#              {% if page_obj.has_previous %}#}
-{#                <a href="?search={{ query }}&page={{ page_obj.previous_page_number }}" #}
-{#                   class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">#}
-{#                    <span class="sr-only">Previous</span>                #}
-{#                    <svg class="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
-{#                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>#}
-{#                    </svg>#}
-{#                </a>#}
-{#                {% if page_obj.number > 3 %}#}
-{#                    <a href="?search={{ query }}&page=1"  class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300">1</a>#}
-{#                    {% if page_obj.number > 4 %}#}
-{#                        <span class="text-gray-600">...</span>#}
-{#                    {% endif %}#}
-{#                {% endif %}#}
-{#              {% else %}#}
-{#                <span class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-300 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed">#}
-{#                  <span class="sr-only">Previous</span>                #}
-{#                  <svg class="w-2.5 h-2.5 rtl:rotate-180 text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
-{#                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 1 1 5l4 4"/>#}
-{#                  </svg>#}
-{#                </span>#}
-{#              {% endif %}#}
-{#            </li>#}
-{#          #}
-{#            <li>#}
-{#              <a href="#" class="flex items-center justify-center px-3 h-8 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">1</a>#}
-{#            </li>#}
-{#          #}
-{#            <li>#}
-{#              {% if page_obj.has_next %}#}
-{#                <a href="?search={{ query }}&page={{ page_obj.next_page_number }}" #}
-{#                   class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-500 bg-white border border-e-0 border-gray-300 rounded-s-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">#}
-{#                    <span class="sr-only">Next</span>#}
-{#                    <svg class="w-2.5 h-2.5 rtl:rotate-180" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
-{#                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>#}
-{#                    </svg>#}
-{#                </a>#}
-{#              {% else %}#}
-{#                <span class="flex items-center justify-center px-3 h-8 ms-0 leading-tight text-gray-300 bg-white border border-e-0 border-gray-300 rounded-s-lg cursor-not-allowed">#}
-{#                    <span class="sr-only">Next</span>#}
-{#                      <svg class="w-2.5 h-2.5 rtl:rotate-180 text-gray-400"  aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">#}
-{#                          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>#}
-{#                      </svg>#}
-{#                </span>#}
-{#              {% endif %}#}
-{#            </li>#}
-{#          #}
-{#          </ul>#}
-{#        </nav>#}
-{#    </div>#}
 
 </div>
 
