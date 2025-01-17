@@ -24,7 +24,7 @@ def product_list(request):
         max_price=Max('options__price'),
     )
 
-    # กรองข้อมูลตามประเภทและคำค้นหา
+    # กรองข้อมูลตามคำค้นหาและประเภท
     if query:
         products = products.filter(Q(name__icontains=query))  # ค้นหาตามชื่อสินค้า
     if category:
@@ -48,7 +48,7 @@ def product_list(request):
 @login_required(login_url='/account/admin-login')
 def product_create(request):
     if request.method == 'POST':
-        # ดึงข้อมูลสินค้า
+        # ดึงข้อมูลสินค้าจากฟอร์ม
         name = request.POST.get('name')
         description = request.POST.get('description')
         category = request.POST.get('category')
@@ -62,7 +62,7 @@ def product_create(request):
             cover_image=cover_image
         )
 
-        # ดึงข้อมูลตัวเลือกสินค้า
+        # ดึงข้อมูลตัวเลือกสินค้าจากฟอร์ม
         colors = request.POST.getlist('color[]')
         sizes = request.POST.getlist('size[]')
         prices = request.POST.getlist('price[]')
@@ -76,88 +76,85 @@ def product_create(request):
                 price=price
             )
 
-        # ดึงข้อมูลรูปภาพเพิ่มเติม
+        # ดึงข้อมูลรูปภาพเพิ่มเติมจากฟอร์ม
         image_files = request.FILES.getlist('images[]')
 
         # บันทึกรูปภาพเพิ่มเติม
-        for image in image_files:
-            ProductImage.objects.create(
-                product=product,
-                image=image
-            )
+        if image_files:
+            for image in image_files:
+                ProductImage.objects.create(
+                    product=product,
+                    image=image
+                )
 
         return redirect('product_list')
 
     return render(request, 'products/product_create.html')
 
 @login_required(login_url='/account/admin-login')
+@transaction.atomic
 def product_edit(request, product_id):
-    # ดึงข้อมูลสินค้าที่ต้องการแก้ไข
+    # ดึงข้อมูลสินค้าที่ต้องการแก้ไขจากฐานข้อมูลโดยใช้ product_id
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == 'POST':
-        # เริ่มกระบวนการจัดการข้อมูลแบบ Atomic
-        try:
-            with transaction.atomic():
-                # ดึงข้อมูลจากฟอร์ม
-                name = request.POST.get('name')
-                description = request.POST.get('description')
-                category = request.POST.get('category')
-                cover_image = request.FILES.get('cover_image')
+        # 1. ดึงข้อมูลสินค้าจากฟอร์ม
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        category = request.POST.get('category')
+        cover_image = request.FILES.get('cover_image')
 
-                # อัปเดตข้อมูลสินค้า
-                product.name = name
-                product.description = description
-                product.category = category
+        # อัปเดตข้อมูลสินค้า
+        product.name = name
+        product.description = description
+        product.category = category
 
-                if cover_image:
-                    product.cover_image = cover_image  # อัปเดตรูปภาพหากมีการอัปโหลดใหม่
-                product.save()
+        if cover_image:
+            product.cover_image = cover_image  # อัปเดตรูปภาพหากมีการอัปโหลดรูปปกสินค้าใหม่
 
-                # ลบตัวเลือกสินค้าเก่าก่อนแล้วเพิ่มใหม่
-                ProductOption.objects.filter(product=product).delete()
+        # บันทึกข้อมูลสินค้า
+        product.save()
 
-                colors = request.POST.getlist('color[]')
-                sizes = request.POST.getlist('size[]')
-                prices = request.POST.getlist('price[]')
+        # ลบตัวเลือกสินค้าเก่าทั้งหมดก่อน แล้วจะเพิ่มใหม่
+        ProductOption.objects.filter(product=product).delete()
 
-                # ตรวจสอบความถูกต้องของข้อมูลตัวเลือก
-                for color, size, price in zip(colors, sizes, prices):
-                    if color and size and price:
-                        ProductOption.objects.create(
-                            product=product,
-                            color=color,
-                            size=size,
-                            price=price
-                        )
+        # 2. ดึงข้อมูลตัวเลือกสินค้าจากฟอร์ม
+        colors = request.POST.getlist('color[]')
+        sizes = request.POST.getlist('size[]')
+        prices = request.POST.getlist('price[]')
 
-                # เพิ่มรูปภาพใหม่
-                new_images = request.FILES.getlist('new_images[]')
-                if new_images:
-                    for image in new_images:
-                        ProductImage.objects.create(
-                            product=product,
-                            image=image
-                        )
+        # ตรวจสอบความถูกต้องของข้อมูลตัวเลือก และเพิ่มข้อมูล
+        for color, size, price in zip(colors, sizes, prices):
+            if color and size and price:
+                ProductOption.objects.create(
+                    product=product,
+                    color=color,
+                    size=size,
+                    price=price
+                )
 
-        except Exception as e:
-            # หากเกิดข้อผิดพลาด ให้แสดงข้อความแจ้งเตือน
-            return render(request, 'products/product_edit.html', {
-                'product': product,
-                'options': product.options.all(),
-                'images': product.images.all(),
-                'error': str(e),
-            })
+        # 3. ดึงข้อมูลรูปภาพเพิ่มเติมใจากฟอร์ม
+        new_images = request.FILES.getlist('new_images[]')
+
+        # ถ้ามีรูปภาพใหม่ เพิ่มภาพใหม่ลงในฐานข้อมูล
+        if new_images:
+            for image in new_images:
+                ProductImage.objects.create(
+                    product=product,
+                    image=image
+                )
 
         return redirect('product_list')
 
-    # ดึงข้อมูลตัวเลือกสินค้าและรูปภาพเพิ่มเติมสำหรับการแสดงฟอร์ม
+    # ดึงข้อมูลตัวเลือกสินค้าและรูปภาพเพิ่มเติมเพื่อแสดงในฟอร์ม
     options = product.options.all()
     images = list(product.images.all())  # แปลง QuerySet เป็น List
 
+    # เติมให้รูปภาพแสดงครบ 4 ช่องในฟอร์ม หากยังมีไม่ครบ
     while len(images) < 4:
         images.append(None)
 
+    # ข้อมูลที่จะส่งไปยังเทมเพลต
     context = {
         'product': product,
         'options': options,
@@ -188,30 +185,36 @@ def delete_image(request, image_id):
             # ถ้าไม่ใช่คำขอจาก HTMX ให้ส่งคำตอบอื่นๆ ตามปกติ
             return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
+def delete_file(file_path):
+    # ตรวจสอบว่าไฟล์ที่ต้องการลบมีอยู่จริงในระบบไฟล์หรือไม่
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except Exception as e:
+            print(f"Error while deleting file: {e}")
+
 @login_required(login_url='/account/admin-login')
+@transaction.atomic
 def product_delete(request, product_id):
     # ดึงข้อมูลสินค้าที่ต้องการลบ
     product = get_object_or_404(Product, id=product_id)
 
     if request.method == 'POST':
 
-        # ลบรูปภาพหลักของสินค้า (cover_image)
-        if product.cover_image:  # ตรวจสอบว่ามีรูปภาพหลักหรือไม่
-            cover_image_path = product.cover_image.path  # พาธของไฟล์ภาพ
-            if os.path.exists(cover_image_path):  # ตรวจสอบว่าไฟล์มีอยู่จริง
-                os.remove(cover_image_path)  # ลบไฟล์ภาพหลัก
+        # ลบรูปภาพหลักของสินค้า (cover_image) ออกจากระบบไฟล์ (filesystem) ของเซิร์ฟเวอร์
+        if product.cover_image:
+            # เรียกฟังก์ชัน delete_file เพื่อลบไฟล์รูปภาพปกสินค้า
+            delete_file(product.cover_image.path)
 
         # ลบตัวเลือกสินค้าที่เกี่ยวข้อง
         ProductOption.objects.filter(product=product).delete()
 
-        # ลบรูปภาพที่เกี่ยวข้องจาก ProductImage
+        # ลบรูปภาพที่เกี่ยวข้องจาก ProductImage ออกจากระบบไฟล์ (filesystem) ของเซิร์ฟเวอร์
         product_images = ProductImage.objects.filter(product=product)
         for image in product_images:
-            image_path = image.image.path  # พาธของไฟล์ภาพ
-            if os.path.exists(image_path):  # ตรวจสอบว่าไฟล์มีอยู่จริง
-                os.remove(image_path)  # ลบไฟล์ภาพ
+            delete_file(image.image.path)
 
-        # ลบสินค้า
+        # ลบสินค้าออกจากฐานข้อมูล
         product.delete()
 
         return JsonResponse({'status': 'success'}, status=200)
