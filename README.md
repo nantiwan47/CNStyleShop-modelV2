@@ -3,7 +3,7 @@
 - cd CNStyleShop-modelV2
 
 **2. สร้าง virtual environment สำหรับ Windows**  
-- python -m venv .venv
+- python -m venv venv
 - .venv\Scripts\activate
 
 **3. ติดตั้ง Python Dependencies**
