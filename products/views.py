@@ -38,11 +38,16 @@ def product_list(request):
     page_number = request.GET.get('page') # รับหมายเลขหน้าจาก URL
     page_obj = paginator.get_page(page_number)  # สร้าง object ของหน้าที่กำลังดู
 
+    # ทำให้ URL ไม่มี `page=` ซ้ำซ้อน
+    query_params = request.GET.copy()
+    query_params.pop('page', None)  # ลบ page ออกจาก query string
+
     return render(request, 'products/product_list.html', {
         'page_obj': page_obj, # ส่งข้อมูลหน้าปัจจุบันไปที่ Template
         'query': query,
         'selected_category': category,
         'category_choices': Product.CATEGORY_CHOICES,  # ส่ง Choices ของ ตาราง Product ไปยัง Template
+        'query_params': query_params.urlencode(),  # ส่งค่า query string ที่ถูกต้องไป Template
     })
 
 @login_required(login_url='/account/admin-login')
@@ -220,4 +225,55 @@ def product_delete(request, product_id):
         return JsonResponse({'status': 'success'}, status=200)
 
     return JsonResponse({'status': 'fail'}, status=400)
+
+
+from django.views.generic import ListView
+from django.db.models import Min, Max
+from django.http import QueryDict
+from django.shortcuts import render
+from .models import Product
+
+class ProductListView(ListView):
+    model = Product
+    template_name = 'products/product_list.html'  # ระบุ Template
+    paginate_by = 10  # กำหนดจำนวนรายการต่อหน้า
+
+    def get_queryset(self):
+        """ กรองสินค้าโดยใช้ search และ category """
+        query = self.request.GET.get('search', '').strip()
+        category = self.request.GET.get('category', '')
+
+        # ดึงข้อมูลสินค้าพร้อมราคาสูงสุดและต่ำสุด
+        products = Product.objects.annotate(
+            min_price=Min('options__price'),
+            max_price=Max('options__price'),
+        )
+
+        # ค้นหาสินค้าตามชื่อ
+        if query:
+            products = products.filter(name__icontains=query)
+
+        # กรองตามหมวดหมู่
+        if category:
+            products = products.filter(category=category)
+
+        # เรียงลำดับจากใหม่ไปเก่า
+        return products.order_by('-id')
+
+    def get_context_data(self, **kwargs):
+        """ ส่ง query_params ไป Template เพื่อให้ Pagination ใช้งานได้ """
+        context = super().get_context_data(**kwargs)
+
+        # ทำให้ URL ไม่มี `page=`
+        query_params = self.request.GET.copy()
+        query_params.pop('page', None)  # ลบ page ออกจาก query string
+
+        # เพิ่มตัวเลือก category choices
+        context['query'] = self.request.GET.get('search', '').strip()
+        context['selected_category'] = self.request.GET.get('category', '')
+        context['category_choices'] = Product.CATEGORY_CHOICES  # ส่ง choices ไป template
+        context['query_params'] = query_params.urlencode()  # แปลง query เป็น string
+
+        return context
+
 
